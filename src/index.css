@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+@import "tailwindcss";
+
+html { scroll-behavior: smooth; }
+
+::selection {
+    background-color: #0A2A1B;
+    color: #D4AF37;
+}
+
+.text-gradient-gold {
+    background: linear-gradient(to right, #FCEBBA 0%, #D4AF37 50%, #FCEBBA 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shine 6s linear infinite;
+}
+
+@keyframes shine {
+    to { background-position: 200% center; }
+}
+
+.lucide { stroke-width: 1.5px; }
+
+/* Dark noise texture for green backgrounds */
+.bg-texture-dark {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+}
+
+.font-sans { font-family: 'Montserrat', sans-serif; }
+.font-serif { font-family: 'Playfair Display', serif; }
