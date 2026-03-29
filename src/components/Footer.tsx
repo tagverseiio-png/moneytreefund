@@ -1,6 +1,10 @@
 import { Landmark } from 'lucide-react';
 
-export const Footer = () => {
+interface FooterProps {
+  onPageChange: (page: string) => void;
+}
+
+export const Footer = ({ onPageChange }: FooterProps) => {
   return (
     <footer className="bg-[#03120B] pt-24 pb-12 border-t border-[#D4AF37]/30 bg-texture-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,19 +25,19 @@ export const Footer = () => {
           <div className="col-span-1 md:col-span-3 md:col-start-7" id="contact">
             <h4 className="text-[#D4AF37] font-serif text-lg mb-6 font-bold">Corporate</h4>
             <ul className="space-y-4">
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">About the Firm</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">Board of Advisors</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">Careers</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">Contact</a></li>
+              <li><button onClick={() => onPageChange('About the Firm')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">About the Firm</button></li>
+              <li><button onClick={() => onPageChange('Board of Advisors')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">Board of Advisors</button></li>
+              <li><button onClick={() => onPageChange('Careers')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">Careers</button></li>
+              <li><button onClick={() => onPageChange('Contact')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">Contact</button></li>
             </ul>
           </div>
           
           <div className="col-span-1 md:col-span-3">
             <h4 className="text-[#D4AF37] font-serif text-lg mb-6 font-bold">Legal</h4>
             <ul className="space-y-4">
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">Liability Waiver</a></li>
+              <li><button onClick={() => onPageChange('Terms of Service')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">Terms of Service</button></li>
+              <li><button onClick={() => onPageChange('Privacy Policy')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">Privacy Policy</button></li>
+              <li><button onClick={() => onPageChange('Liability Waiver')} className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors text-left">Liability Waiver</button></li>
             </ul>
           </div>
         </div>

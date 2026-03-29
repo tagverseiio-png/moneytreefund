@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Landmark, ArrowRight, Menu } from 'lucide-react';
 
-export const Navbar = () => {
+interface NavbarProps {
+  onHome: () => void;
+}
+
+export const Navbar = ({ onHome }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -32,7 +36,10 @@ export const Navbar = () => {
           </div>
 
           {/* Center Logo */}
-          <div className="flex justify-center items-center gap-2 xl:gap-3 cursor-pointer group px-2">
+          <div 
+            className="flex justify-center items-center gap-2 xl:gap-3 cursor-pointer group px-2"
+            onClick={onHome}
+          >
             <Landmark className="h-5 w-5 xl:h-6 xl:w-6 text-[#D4AF37] group-hover:scale-110 transition-transform duration-500" />
             <span className="font-serif text-lg xl:text-2xl text-white tracking-[0.1em] xl:tracking-[0.15em] uppercase font-bold whitespace-nowrap">
               Money Tree<span className="text-[#D4AF37] italic lowercase ml-1 tracking-normal font-medium">funds.</span>
@@ -50,7 +57,7 @@ export const Navbar = () => {
 
         {/* Mobile Layout */}
         <div className={`flex lg:hidden justify-between items-center transition-all duration-500 ${isScrolled ? 'h-16' : 'h-20'}`} id="nav-container-mobile">
-          <div className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={onHome}>
             <Landmark className="h-6 w-6 text-[#D4AF37]" />
             <span className="font-serif text-lg text-white tracking-[0.1em] uppercase font-bold">
               Money Tree<span className="text-[#D4AF37] italic lowercase tracking-normal">funds.</span>
