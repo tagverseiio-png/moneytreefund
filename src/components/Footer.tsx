@@ -18,7 +18,7 @@ export const Footer = () => {
             </p>
           </div>
           
-          <div className="col-span-1 md:col-span-3 md:col-start-7">
+          <div className="col-span-1 md:col-span-3 md:col-start-7" id="contact">
             <h4 className="text-[#D4AF37] font-serif text-lg mb-6 font-bold">Corporate</h4>
             <ul className="space-y-4">
               <li><a href="#" className="text-white/70 hover:text-[#D4AF37] text-xs font-bold tracking-[0.2em] uppercase transition-colors">About the Firm</a></li>
