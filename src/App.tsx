@@ -19,7 +19,7 @@ function App() {
   if (activePage) {
     return (
       <div className="font-sans bg-[#03120B] text-white antialiased font-light overflow-x-hidden">
-        <Navbar onHome={() => setActivePage(null)} />
+        <Navbar onHome={() => setActivePage(null)} onSectionClick={() => setActivePage(null)} />
         <LegalPage title={activePage} onBack={() => setActivePage(null)} />
         <Footer onPageChange={setActivePage} />
       </div>
@@ -28,7 +28,7 @@ function App() {
 
   return (
     <div className="font-sans bg-[#03120B] text-white antialiased font-light overflow-x-hidden">
-      <Navbar onHome={() => setActivePage(null)} />
+      <Navbar onHome={() => setActivePage(null)} onSectionClick={() => setActivePage(null)} />
       <Hero />
       <Ticker />
       <Methodology />
