@@ -7,12 +7,12 @@ export const AssetClasses = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-[#0A2A1B]/10 pb-12 gap-8">
-          <div>
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-20 border-b border-[#0A2A1B]/10 pb-12 gap-8">
+          <div className="text-center md:text-left">
             <span className="text-[#AA8825] text-sm font-bold tracking-[0.3em] uppercase mb-4 block">Our Services</span>
             <h2 className="font-serif text-5xl lg:text-6xl font-bold text-[#03120B] leading-tight">Asset Classes</h2>
           </div>
-          <p className="text-[#03120B]/60 font-medium max-w-sm text-sm leading-relaxed md:text-right md:pr-6 border-r-0 md:border-r-2 border-[#D4AF37]/20">
+          <p className="text-[#03120B]/60 font-medium max-w-sm text-sm leading-relaxed text-center md:text-right md:pr-6 border-r-0 md:border-r-2 border-[#D4AF37]/20">
             Diversified physical investments designed to yield compounding long-term health benefits.
           </p>
         </div>
