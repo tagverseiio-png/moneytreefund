@@ -17,8 +17,7 @@ export const Hero = () => {
         </div>
 
         <h1 className="text-5xl md:text-7xl lg:text-[6.5rem] font-serif font-bold text-[#D4AF37] leading-tight mb-8">
-          Invest in your <br />
-          <span className="text-white italic pr-4 font-semibold">Greatest Asset.</span>
+          Money Tree Fund
         </h1>
         
         <p className="text-base md:text-xl text-white/80 mb-12 max-w-2xl font-medium leading-relaxed">
@@ -26,11 +25,8 @@ export const Hero = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 items-center">
-          <a href="#tiers" className="bg-[#D4AF37] text-[#03120B] px-10 py-4 text-sm font-bold tracking-[0.2em] uppercase hover:bg-white transition-all duration-300 flex items-center gap-3">
-            View Portfolios <ChevronRight className="h-4 w-4" />
-          </a>
-          <a href="#philosophy" className="bg-transparent border-2 border-[#D4AF37] text-[#D4AF37] px-10 py-4 text-sm font-bold tracking-[0.2em] uppercase hover:bg-[#D4AF37] hover:text-[#03120B] transition-all duration-300">
-            Read Prospectus
+          <a href="#philosophy" className="bg-[#D4AF37] text-[#03120B] px-10 py-4 text-sm font-bold tracking-[0.2em] uppercase hover:bg-white transition-all duration-300 flex items-center gap-3">
+            Read Prospectus <ChevronRight className="h-4 w-4" />
           </a>
         </div>
       </div>

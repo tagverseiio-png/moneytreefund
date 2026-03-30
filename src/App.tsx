@@ -4,7 +4,7 @@ import { Hero } from './components/Hero';
 import { Ticker } from './components/Ticker';
 import { Methodology } from './components/Methodology';
 import { AssetClasses } from './components/AssetClasses';
-import { Tiers } from './components/Tiers';
+import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { LegalPage } from './components/LegalPage';
 
@@ -33,7 +33,7 @@ function App() {
       <Ticker />
       <Methodology />
       <AssetClasses />
-      <Tiers />
+      <Contact />
       <Footer onPageChange={setActivePage} />
     </div>
   );
