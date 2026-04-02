@@ -1,9 +1,9 @@
 
 export const AssetClasses = () => {
   return (
-    <section id="portfolios" className="py-32 bg-[#FDFBF7] relative overflow-hidden">
+    <section id="portfolios" className="py-32 bg-[#F3EEE3] relative overflow-hidden">
       {/* Premium subtle background element */}
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-[#D4AF37]/5 -skew-x-12 transform translate-x-1/2"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-[#D4AF37]/8 -skew-x-12 transform translate-x-1/2"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
