@@ -38,26 +38,45 @@ export const Hero = () => {
       </div>
 
       {/* Stats Bar */}
-      <div className="relative z-10 w-full bg-[#03120B]/80 backdrop-blur-md py-8 border-t border-[#D4AF37]/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-6 md:pl-0 md:pr-10">
-            <span className="text-[#D4AF37] text-2xl font-bold font-serif">850+</span>
-            <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1">Clients</span>
-          </div>
-          <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-6 md:pl-0 md:pr-10">
-            <span className="text-[#D4AF37] text-2xl font-bold font-serif">320+</span>
-            <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1">Trust Structures</span>
-          </div>
-          <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-6 md:pl-0 md:pr-10">
-            <span className="text-[#D4AF37] text-2xl font-bold font-serif">USD 480M+</span>
-            <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1">AUA</span>
-          </div>
-          <div className="flex flex-col items-center md:items-start border-l md:border-l-0 pl-6 md:pl-0">
-            <span className="text-[#D4AF37] text-2xl font-bold font-serif">18+</span>
-            <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1">Jurisdictions</span>
+      <div className="relative z-10 w-full bg-[#03120B]/80 backdrop-blur-md py-8 border-t border-[#D4AF37]/20 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex animate-marquee-slow md:grid md:grid-cols-4 gap-12 md:gap-8 items-center">
+            {/* Doubled logic for mobile scroll, hidden on md+ where grid takes over */}
+            {[1, 2].map((iter) => (
+              <div key={iter} className={`flex gap-12 md:contents ${iter === 2 ? 'md:hidden' : ''}`}>
+                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-10 md:pl-0 md:pr-10 shrink-0">
+                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">850+</span>
+                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">Clients</span>
+                </div>
+                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-10 md:pl-0 md:pr-10 shrink-0">
+                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">320+</span>
+                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">Trust Structures</span>
+                </div>
+                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-10 md:pl-0 md:pr-10 shrink-0">
+                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">USD 480M+</span>
+                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">AUA</span>
+                </div>
+                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 pl-10 md:pl-0 shrink-0">
+                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">18+</span>
+                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">Jurisdictions</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes marquee-slow {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @media (max-width: 768px) {
+          .animate-marquee-slow {
+            animation: marquee-slow 20s linear infinite;
+          }
+        }
+      `}</style>
     </section>
   );
 };

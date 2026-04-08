@@ -30,16 +30,38 @@ function App() {
   }
 
   return (
-    <div className="font-sans bg-[#03120B] text-[#FDFBF7] antialiased font-light overflow-x-hidden">
+    <div className="min-h-screen bg-[#03120B] selection:bg-[#D4AF37] selection:text-[#03120B] snap-y snap-mandatory overflow-y-auto">
       <Navbar onHome={() => setActivePage(null)} onSectionClick={() => setActivePage(null)} />
-      <Hero />
-      <Ticker />
-      <Methodology />
-      <AssetClasses />
-      <TrusteeAdmin />
-      <Process />
-      <Insights />
-      <Contact />
+      
+      <main className="snap-start" id="home">
+        <Hero />
+        <Ticker />
+      </main>
+
+      <div className="snap-start">
+        <Methodology />
+      </div>
+
+      <div className="snap-start">
+        <AssetClasses />
+      </div>
+
+      <div className="snap-start">
+        <TrusteeAdmin />
+      </div>
+
+      <div className="snap-start">
+        <Process />
+      </div>
+
+      <div className="snap-start">
+        <Insights />
+      </div>
+
+      <div className="snap-start">
+        <Contact />
+      </div>
+
       <Footer onPageChange={setActivePage} />
     </div>
   );
