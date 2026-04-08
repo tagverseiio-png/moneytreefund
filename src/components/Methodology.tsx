@@ -1,55 +1,57 @@
-import { Microscope, Users, Lock } from 'lucide-react';
+import { Anchor, Shield, Scale } from 'lucide-react';
 
 export const Methodology = () => {
   return (
-    <section id="philosophy" className="py-32 bg-[#D4AF37] relative overflow-hidden">
-      {/* Subtle background pattern for coordination */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none bg-texture-dark"></div>
+    <section id="about" className="py-32 relative overflow-hidden bg-[#03120B]">
+      {/* Subtle gold gradients for coordination */}
+      <div className="absolute -left-32 top-1/4 w-96 h-96 rounded-full bg-[#D4AF37]/5 blur-3xl pointer-events-none" />
+      <div className="absolute right-0 bottom-0 w-72 h-72 rounded-full bg-[#D4AF37]/5 blur-2xl pointer-events-none" />
+      <div className="absolute inset-0 bg-texture-dark opacity-40 pointer-events-none"></div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-[#FDFBF7]">
         <div className="flex flex-col items-center mb-24">
-          <span className="text-[#03120B] text-sm font-bold tracking-[0.2em] uppercase mb-4">Secure Trustee Administration</span>
-          <div className="w-12 h-1 bg-white mb-8"></div>
-          <h2 className="font-serif text-4xl lg:text-6xl text-[#03120B] text-center font-bold leading-tight">
-            A Calculated Approach <br />
-            <span className="italic text-white font-medium">to Wealth & Wellness.</span>
+          <span className="text-[#D4AF37] text-[10px] font-bold tracking-[0.3em] uppercase mb-4">About The Firm</span>
+          <div className="w-12 h-1 bg-[#D4AF37]/40 mb-8"></div>
+          <h2 className="font-serif text-4xl lg:text-7xl text-center font-bold leading-tight">
+            Established for Structured <br />
+            <span className="italic text-[#D4AF37] font-medium">Trust Administration.</span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
-          {/* 01 */}
-          <div className="bg-[#FDFBF7] p-10 shadow-[0_20px_40px_-10px_rgba(10,42,27,0.4)] hover:-translate-y-2 transition-transform duration-500 relative overflow-hidden group border border-[#D4AF37]/10">
-            <div className="absolute -right-4 -top-4 font-serif text-9xl font-bold text-[#0A2A1B]/5 group-hover:text-[#D4AF37]/10 transition-colors duration-500 pointer-events-none">1</div>
-            <div className="w-14 h-14 bg-[#03120B] text-[#D4AF37] flex items-center justify-center rounded-sm mb-8">
-              <Microscope className="h-7 w-7" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14">
+          {/* Firm Overview */}
+          <div className="group bg-[#0A2A1B]/80 border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 p-10 shadow-[0_20px_40px_-10px_rgba(3,18,11,0.6)] hover:-translate-y-2 transition-all duration-500 relative overflow-hidden rounded-sm">
+            <div className="absolute -right-4 -top-4 font-serif text-9xl font-bold text-[#D4AF37]/5 group-hover:text-[#D4AF37]/10 transition-colors pointer-events-none">1</div>
+            <div className="w-14 h-14 bg-[#D4AF37]/10 border border-[#D4AF37]/20 group-hover:bg-[#D4AF37] group-hover:border-[#D4AF37] text-[#D4AF37] group-hover:text-[#03120B] flex items-center justify-center mb-8 transition-all duration-500">
+              <Anchor className="h-6 w-6" />
             </div>
-            <h3 className="font-serif text-2xl text-[#03120B] font-bold mb-4">Biometric Auditing</h3>
-            <p className="text-[#0A2A1B]/80 font-medium text-sm leading-relaxed">
-              Quarterly DEXA scans, VO2 max, and metabolic testing. We establish precise baseline metrics to track your portfolio's physiological growth with absolute transparency.
+            <h3 className="font-serif text-2xl font-bold mb-4 group-hover:text-[#D4AF37] transition-colors">Firm Overview</h3>
+            <p className="text-[#FDFBF7]/50 text-sm font-medium leading-relaxed group-hover:text-[#FDFBF7]/70 transition-colors">
+              Established to provide structured trustee administration and fiduciary services for individuals, institutions, and beneficiary groups across complex multi-jurisdictional landscapes.
             </p>
           </div>
           
-          {/* 02 */}
-          <div className="bg-[#FDFBF7] p-10 shadow-[0_20px_40px_-10px_rgba(10,42,27,0.4)] hover:-translate-y-2 transition-transform duration-500 relative overflow-hidden group border border-[#D4AF37]/10">
-            <div className="absolute -right-4 -top-4 font-serif text-9xl font-bold text-[#0A2A1B]/5 group-hover:text-[#D4AF37]/10 transition-colors duration-500 pointer-events-none">2</div>
-            <div className="w-14 h-14 bg-[#03120B] text-[#D4AF37] flex items-center justify-center rounded-sm mb-8">
-              <Users className="h-7 w-7" />
+          {/* Our Mission */}
+          <div className="group bg-[#0A2A1B]/80 border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 p-10 shadow-[0_20px_40px_-10px_rgba(3,18,11,0.6)] hover:-translate-y-2 transition-all duration-500 relative overflow-hidden rounded-sm">
+            <div className="absolute -right-4 -top-4 font-serif text-9xl font-bold text-[#D4AF37]/5 group-hover:text-[#D4AF37]/10 transition-colors pointer-events-none">2</div>
+            <div className="w-14 h-14 bg-[#D4AF37]/10 border border-[#D4AF37]/20 group-hover:bg-[#D4AF37] group-hover:border-[#D4AF37] text-[#D4AF37] group-hover:text-[#03120B] flex items-center justify-center mb-8 transition-all duration-500">
+              <Shield className="h-6 w-6" />
             </div>
-            <h3 className="font-serif text-2xl text-[#03120B] font-bold mb-4">Money Tree Fund</h3>
-            <p className="text-[#0A2A1B]/80 font-medium text-sm leading-relaxed">
-              Our core offering ensures certified performance guidance tailored to your physical goals. No fads, only peer-reviewed, evidence-based regimens.
+            <h3 className="font-serif text-2xl font-bold mb-4 group-hover:text-[#D4AF37] transition-colors">Our Mission</h3>
+            <p className="text-[#FDFBF7]/50 text-sm font-medium leading-relaxed group-hover:text-[#FDFBF7]/70 transition-colors">
+              To protect beneficiary interests through reliable governance, unyielding transparency, and structural integrity.
             </p>
           </div>
 
-          {/* 03 */}
-          <div className="bg-[#FDFBF7] p-10 shadow-[0_20px_40px_-10px_rgba(10,42,27,0.4)] hover:-translate-y-2 transition-transform duration-500 relative overflow-hidden group border border-[#D4AF37]/10">
-            <div className="absolute -right-4 -top-4 font-serif text-9xl font-bold text-[#0A2A1B]/5 group-hover:text-[#D4AF37]/10 transition-colors duration-500 pointer-events-none">3</div>
-            <div className="w-14 h-14 bg-[#03120B] text-[#D4AF37] flex items-center justify-center rounded-sm mb-8">
-              <Lock className="h-7 w-7" />
+          {/* Core Values */}
+          <div className="group bg-[#0A2A1B]/80 border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 p-10 shadow-[0_20px_40px_-10px_rgba(3,18,11,0.6)] hover:-translate-y-2 transition-all duration-500 relative overflow-hidden rounded-sm">
+            <div className="absolute -right-4 -top-4 font-serif text-9xl font-bold text-[#D4AF37]/5 group-hover:text-[#D4AF37]/10 transition-colors pointer-events-none">3</div>
+            <div className="w-14 h-14 bg-[#D4AF37]/10 border border-[#D4AF37]/20 group-hover:bg-[#D4AF37] group-hover:border-[#D4AF37] text-[#D4AF37] group-hover:text-[#03120B] flex items-center justify-center mb-8 transition-all duration-500">
+              <Scale className="h-6 w-6" />
             </div>
-            <h3 className="font-serif text-2xl text-[#03120B] font-bold mb-4">Exclusive Access</h3>
-            <p className="text-[#0A2A1B]/80 font-medium text-sm leading-relaxed">
-              Membership is strictly capped, ensuring immediate equipment availability and a high-focus environment. Your privacy and security remain our paramount concerns.
+            <h3 className="font-serif text-2xl font-bold mb-4 group-hover:text-[#D4AF37] transition-colors">Core Values</h3>
+            <p className="text-[#FDFBF7]/50 text-sm font-medium leading-relaxed group-hover:text-[#FDFBF7]/70 transition-colors">
+              We combine trustee expertise with stringent compliance practices, building our foundation on four pillars: <span className="text-[#FDFBF7] font-bold">Integrity, Transparency, Security, and Accountability.</span>
             </p>
           </div>
         </div>

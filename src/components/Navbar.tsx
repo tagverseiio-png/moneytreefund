@@ -37,22 +37,21 @@ export const Navbar = ({ onHome, onSectionClick }: NavbarProps) => {
     >
       <div className="px-6 lg:px-10">
         <div className={`hidden lg:flex justify-between items-center transition-all duration-500 w-full ${isScrolled ? 'h-16' : 'h-20'}`} id="nav-container-desktop">
-          {/* Grouped Content for Screenshot Alignment */}
           <div className="flex items-center gap-12 xl:gap-20 w-full">
-            {/* Left Links */}
             <div className="flex gap-10 items-center">
-              <a href="#philosophy" onClick={handleLinkClick} className="text-white hover:text-[#D4AF37] transition-colors text-xs font-bold tracking-[0.2em] uppercase whitespace-nowrap">Methodology</a>
-              <a href="#portfolios" onClick={handleLinkClick} className="text-white hover:text-[#D4AF37] transition-colors text-xs font-bold tracking-[0.2em] uppercase whitespace-nowrap">Asset Classes</a>
-              <a href="#contact" onClick={handleLinkClick} className="text-white hover:text-[#D4AF37] transition-colors text-xs font-bold tracking-[0.2em] uppercase whitespace-nowrap">Contact</a>
+              <a href="#about" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">About</a>
+              <a href="#services" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Services</a>
+              <a href="#risk" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Risk Management</a>
+              <a href="#process" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Process</a>
+              <a href="#contact" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Contact</a>
             </div>
 
-            {/* Logo Aligned with Links as in Screenshot */}
             <div 
               className="flex items-center gap-3 cursor-pointer group ml-auto"
               onClick={onHome}
             >
               <Landmark className="h-6 w-6 text-[#D4AF37] group-hover:scale-110 transition-transform duration-500" />
-              <span className="font-serif text-2xl text-white tracking-[0.1em] uppercase font-bold whitespace-nowrap">
+              <span className="font-serif text-2xl text-[#FDFBF7] tracking-[0.1em] uppercase font-bold whitespace-nowrap">
                 Money Tree <span className="text-[#D4AF37] italic font-medium">Fund</span>
               </span>
             </div>
@@ -63,12 +62,12 @@ export const Navbar = ({ onHome, onSectionClick }: NavbarProps) => {
         <div className={`flex lg:hidden justify-between items-center transition-all duration-500 ${isScrolled ? 'h-16' : 'h-20'}`} id="nav-container-mobile">
           <div className="flex items-center gap-2 cursor-pointer" onClick={onHome}>
             <Landmark className="h-6 w-6 text-[#D4AF37]" />
-            <span className="font-serif text-lg text-white tracking-[0.1em] uppercase font-bold">
+            <span className="font-serif text-lg text-[#FDFBF7] tracking-[0.1em] uppercase font-bold">
               Money Tree <span className="text-[#D4AF37] italic">Fund</span>
             </span>
           </div>
           <button 
-            className="text-white hover:text-[#D4AF37] focus:outline-none transition-colors"
+            className="text-[#FDFBF7] hover:text-[#D4AF37] focus:outline-none transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
@@ -76,12 +75,13 @@ export const Navbar = ({ onHome, onSectionClick }: NavbarProps) => {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
-      <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-64 border-t border-[#D4AF37]/20 bg-[#03120B]/95' : 'max-h-0'}`}>
+      <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-80 border-t border-[#D4AF37]/20 bg-[#03120B]/95' : 'max-h-0'}`}>
         <div className="flex flex-col p-6 gap-6">
-          <a href="#philosophy" onClick={handleLinkClick} className="text-white hover:text-[#D4AF37] transition-colors text-xs font-bold tracking-[0.2em] uppercase">Methodology</a>
-          <a href="#portfolios" onClick={handleLinkClick} className="text-white hover:text-[#D4AF37] transition-colors text-xs font-bold tracking-[0.2em] uppercase">Asset Classes</a>
-          <a href="#contact" onClick={handleLinkClick} className="text-white hover:text-[#D4AF37] transition-colors text-xs font-bold tracking-[0.2em] uppercase">Contact</a>
+          <a href="#about" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">About</a>
+          <a href="#services" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Services</a>
+          <a href="#risk" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Risk Management</a>
+          <a href="#process" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Process</a>
+          <a href="#contact" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Contact</a>
         </div>
       </div>
     </nav>
