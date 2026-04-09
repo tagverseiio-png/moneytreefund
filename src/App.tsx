@@ -3,7 +3,6 @@ import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Ticker } from './components/Ticker';
 import { Methodology } from './components/Methodology';
-import { TrusteeAdmin } from './components/TrusteeAdmin';
 import { AssetClasses } from './components/AssetClasses';
 import { Process } from './components/Process';
 import { Insights } from './components/Insights';
@@ -44,10 +43,6 @@ function App() {
 
       <div className="snap-start">
         <AssetClasses />
-      </div>
-
-      <div className="snap-start">
-        <TrusteeAdmin />
       </div>
 
       <div className="snap-start">

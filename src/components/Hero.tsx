@@ -9,7 +9,7 @@ export const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#03120B] via-[#03120B]/80 to-[#03120B]/40"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col items-center text-center mt-12 mb-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col items-center text-center mt-12">
         <div className="inline-flex items-center gap-4 px-5 py-2 border border-[#D4AF37] bg-[#D4AF37]/10 shadow-[0_20px_40px_-10px_rgba(212,175,55,0.3)] rounded-sm mb-10">
           <span className="w-2 h-2 rounded-full bg-[#E6C762] animate-pulse"></span>
           <span className="text-[#E6C762] text-[10px] font-bold tracking-[0.3em] uppercase">Fiduciary &amp; Administrative Services</span>
@@ -36,47 +36,6 @@ export const Hero = () => {
           </a>
         </div>
       </div>
-
-      {/* Stats Bar */}
-      <div className="relative z-10 w-full bg-[#03120B]/80 backdrop-blur-md py-8 border-t border-[#D4AF37]/20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex animate-marquee-slow md:grid md:grid-cols-4 gap-12 md:gap-8 items-center">
-            {/* Doubled logic for mobile scroll, hidden on md+ where grid takes over */}
-            {[1, 2].map((iter) => (
-              <div key={iter} className={`flex gap-12 md:contents ${iter === 2 ? 'md:hidden' : ''}`}>
-                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-10 md:pl-0 md:pr-10 shrink-0">
-                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">850+</span>
-                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">Clients</span>
-                </div>
-                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-10 md:pl-0 md:pr-10 shrink-0">
-                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">320+</span>
-                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">Trust Structures</span>
-                </div>
-                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 md:border-r border-[#D4AF37]/10 pl-10 md:pl-0 md:pr-10 shrink-0">
-                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">USD 480M+</span>
-                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">AUA</span>
-                </div>
-                <div className="flex flex-col items-center md:items-start border-l md:border-l-0 pl-10 md:pl-0 shrink-0">
-                  <span className="text-[#D4AF37] text-2xl font-bold font-serif whitespace-nowrap">18+</span>
-                  <span className="text-[#FDFBF7]/40 text-[9px] font-bold tracking-[0.25em] uppercase mt-1 whitespace-nowrap">Jurisdictions</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes marquee-slow {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        @media (max-width: 768px) {
-          .animate-marquee-slow {
-            animation: marquee-slow 20s linear infinite;
-          }
-        }
-      `}</style>
     </section>
   );
 };
