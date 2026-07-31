@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X } from 'lucide-react';
+import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Client {
@@ -11,9 +11,17 @@ interface Client {
   createdAt: string;
 }
 
+interface PasswordResetRequest {
+  id: string;
+  email: string;
+  status: string;
+  createdAt: string;
+}
+
 export const Clients = () => {
   const { role } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
+  const [passwordResets, setPasswordResets] = useState<PasswordResetRequest[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form state for creating client
@@ -30,23 +38,34 @@ export const Clients = () => {
   const [reqDesc, setReqDesc] = useState('');
   const [requesting, setRequesting] = useState(false);
 
-  const fetchClients = async () => {
+  // Modal state for changing password
+  const [passwordModalClient, setPasswordModalClient] = useState<Client | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [settingPassword, setSettingPassword] = useState(false);
+
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/clients');
-      if (res.data.success) {
-        setClients(res.data.data);
+      const [clientsRes, resetsRes] = await Promise.all([
+        api.get('/clients'),
+        role === 'Admin' ? api.get('/clients/password-resets') : Promise.resolve({ data: { success: true, data: [] } })
+      ]);
+      if (clientsRes.data.success) {
+        setClients(clientsRes.data.data);
+      }
+      if (resetsRes.data.success) {
+        setPasswordResets(resetsRes.data.data);
       }
     } catch (error) {
-      console.error('Error fetching clients:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClients();
-  }, []);
+    fetchData();
+  }, [role]);
 
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +82,7 @@ export const Clients = () => {
       setName('');
       setEmail('');
       setPassword('');
-      fetchClients();
+      fetchData();
     } catch (err: any) {
       console.error('Error creating client:', err);
       setError(err.response?.data?.message || 'Failed to create client');
@@ -76,7 +95,7 @@ export const Clients = () => {
     if (!window.confirm('Are you sure you want to approve this client account?')) return;
     try {
       await api.put(`/clients/${clientId}/approve`);
-      fetchClients();
+      fetchData();
     } catch (error) {
       console.error('Approval failed:', error);
       alert('Failed to approve client.');
@@ -105,12 +124,50 @@ export const Clients = () => {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordModalClient || !newPassword) return;
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters.');
+      return;
+    }
+
+    try {
+      setSettingPassword(true);
+      await api.put(`/clients/${passwordModalClient.id}/password`, {
+        password: newPassword
+      });
+      alert('Password updated successfully.');
+      setPasswordModalClient(null);
+      setNewPassword('');
+      fetchData(); // Refresh resets
+    } catch (error) {
+      console.error('Password reset failed:', error);
+      alert('Failed to update password.');
+    } finally {
+      setSettingPassword(false);
+    }
+  };
+
   return (
     <div className="space-y-6 relative">
       <div>
         <h2 className="text-2xl font-light text-white">Clients</h2>
         <p className="text-gray-400 mt-1">Manage client profiles, approve accounts, and request documents.</p>
       </div>
+
+      {role === 'Admin' && passwordResets.length > 0 && (
+        <div className="bg-yellow-900/30 border border-yellow-500/50 p-4 rounded-lg flex items-start gap-3">
+          <AlertTriangle className="text-yellow-400 mt-0.5" size={20} />
+          <div>
+            <h3 className="text-yellow-400 font-medium">Pending Password Reset Requests</h3>
+            <p className="text-sm text-yellow-200/70 mt-1">
+              The following emails have requested a password reset: {passwordResets.map(r => r.email).join(', ')}. 
+              Find the corresponding client below and click "Change Password".
+            </p>
+          </div>
+        </div>
+      )}
 
       {role === 'Admin' && (
         <form onSubmit={handleCreateClient} className="bg-[#051a10] border border-white/5 p-6 rounded-lg space-y-4">
@@ -201,42 +258,55 @@ export const Clients = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {clients.map((client) => (
-                <tr key={client.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-200">{client.name}</div>
-                    <div className="text-sm text-gray-500">{client.email}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${client.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
-                      {client.status || 'Pending'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-400">{new Date(client.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    {role === 'Admin' && (
-                      <>
-                        <button 
-                          onClick={() => setRequestModalClient(client)}
-                          className="px-3 py-1.5 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded text-sm transition-colors border border-[#D4AF37]/30"
-                          title="Request Document"
-                        >
-                          <FileText size={16} className="inline mr-1" /> Request Doc
-                        </button>
-                        {client.status !== 'Active' && (
+              {clients.map((client) => {
+                const hasResetRequest = passwordResets.some(r => r.email === client.email);
+                return (
+                  <tr key={client.id} className={`hover:bg-white/[0.02] transition-colors ${hasResetRequest ? 'bg-yellow-500/[0.05]' : ''}`}>
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-200 flex items-center gap-2">
+                        {client.name}
+                        {hasResetRequest && <AlertTriangle size={14} className="text-yellow-500" title="Password Reset Requested" />}
+                      </div>
+                      <div className="text-sm text-gray-500">{client.email}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${client.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+                        {client.status || 'Pending'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{new Date(client.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-right space-x-2">
+                      {role === 'Admin' && (
+                        <>
                           <button 
-                            onClick={() => handleApprove(client.id)}
-                            className="px-3 py-1.5 bg-green-500/10 text-green-400 hover:bg-green-500/20 rounded text-sm transition-colors border border-green-500/30"
-                            title="Approve Account"
+                            onClick={() => setPasswordModalClient(client)}
+                            className="px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded text-sm transition-colors border border-blue-500/30"
+                            title="Change Password"
                           >
-                            <CheckCircle2 size={16} className="inline mr-1" /> Approve
+                            <Key size={16} className="inline mr-1" /> Password
                           </button>
-                        )}
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                          <button 
+                            onClick={() => setRequestModalClient(client)}
+                            className="px-3 py-1.5 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded text-sm transition-colors border border-[#D4AF37]/30"
+                            title="Request Document"
+                          >
+                            <FileText size={16} className="inline mr-1" /> Request Doc
+                          </button>
+                          {client.status !== 'Active' && (
+                            <button 
+                              onClick={() => handleApprove(client.id)}
+                              className="px-3 py-1.5 bg-green-500/10 text-green-400 hover:bg-green-500/20 rounded text-sm transition-colors border border-green-500/30"
+                              title="Approve Account"
+                            >
+                              <CheckCircle2 size={16} className="inline mr-1" /> Approve
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -290,6 +360,53 @@ export const Clients = () => {
                   className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-md hover:bg-[#FDFBF7] transition-all disabled:opacity-50"
                 >
                   {requesting ? 'Sending...' : 'Send Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {passwordModalClient && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#051a10] border border-white/10 p-6 rounded-lg shadow-2xl max-w-md w-full relative">
+            <button 
+              onClick={() => setPasswordModalClient(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-xl font-light text-white mb-2">Change Password</h3>
+            <p className="text-gray-400 text-sm mb-6">Manually set a new password for <span className="text-[#D4AF37]">{passwordModalClient.name}</span>.</p>
+            
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">New Password</label>
+                <input
+                  type="text" // using text so admin can see what they generated
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-[#03120B] border border-white/10 rounded-md px-4 py-2 text-gray-200 focus:outline-none focus:border-[#D4AF37]"
+                  placeholder="At least 6 characters"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalClient(null)}
+                  className="px-4 py-2 text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={settingPassword || !newPassword || newPassword.length < 6}
+                  className="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-all disabled:opacity-50"
+                >
+                  {settingPassword ? 'Saving...' : 'Save Password'}
                 </button>
               </div>
             </form>

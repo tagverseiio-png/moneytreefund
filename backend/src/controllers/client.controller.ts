@@ -134,3 +134,62 @@ export const createDocumentRequest = async (req: Request, res: Response) => {
   }
 };
 
+export const getPasswordResets = async (req: Request, res: Response) => {
+  try {
+    if (req.user?.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const snapshot = await db.collection('password_reset_requests')
+      .where('status', '==', 'Pending')
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    return res.status(200).json({ success: true, data: requests });
+  } catch (error) {
+    console.error('Error fetching password resets:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { password } = req.body;
+
+    if (req.user?.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+
+    // Update the password in Firebase Auth
+    await auth.updateUser(id, { password });
+
+    // Find and fulfill any pending reset requests for this user's email
+    // First, we need the user's email to mark their requests as Fulfilled.
+    const userRecord = await auth.getUser(id);
+    if (userRecord.email) {
+      const pendingResets = await db.collection('password_reset_requests')
+        .where('email', '==', userRecord.email)
+        .where('status', '==', 'Pending')
+        .get();
+        
+      const batch = db.batch();
+      pendingResets.docs.forEach(doc => {
+        batch.update(doc.ref, { status: 'Fulfilled', fulfilledAt: new Date().toISOString() });
+      });
+      await batch.commit();
+    }
+
+    return res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+

@@ -148,3 +148,34 @@ export const logout = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    // Verify if user exists in our DB (optional but good practice)
+    const usersSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+    
+    // We can still create a request even if they don't exist to prevent email enumeration,
+    // but saving it with the exact email is fine.
+    const reqRef = db.collection('password_reset_requests').doc();
+    await reqRef.set({
+      id: reqRef.id,
+      email,
+      status: 'Pending',
+      createdAt: new Date().toISOString()
+    });
+
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Password reset request submitted. An admin will notify you once reset.' 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
