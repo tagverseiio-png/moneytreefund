@@ -12,43 +12,37 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-const DashboardRouter = () => {
-  const { role } = useAuth();
-  
-  return (
-    <Routes>
-      <Route path="/" element={role === 'Client' ? <ClientPortal /> : <DashboardOverview />} />
-      <Route path="clients" element={<Clients />} />
-      <Route path="trusts" element={<Trusts />} />
-      <Route path="documents" element={<Documents />} />
-      <Route path="settings" element={<Settings />} />
-    </Routes>
-  );
-};
-
 function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/admin" element={<LoginPage />} />
+  const { role } = useAuth();
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard/*" element={
-              <DashboardLayout>
-                <DashboardRouter />
-              </DashboardLayout>
-            } />
+  return (
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/admin" element={<LoginPage />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={role === 'Client' ? <ClientPortal /> : <DashboardOverview />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="trusts" element={<Trusts />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
-        </Routes>
-      </Router>
-    </AuthProvider>
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
-export default App;
+const AppWrapper = () => (
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
+
+export default AppWrapper;
