@@ -43,7 +43,7 @@ export const Settings = () => {
     fetchLayouts();
   }, []);
 
-  const handleDocChange = (index: number, field: keyof RequiredDoc, value: string) => {
+  const handleDocChange = (index: number, field: keyof RequiredDoc, value: any) => {
     const newDocs = [...formDocs];
     newDocs[index][field] = value;
     setFormDocs(newDocs);

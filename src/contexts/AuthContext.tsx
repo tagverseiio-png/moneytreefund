@@ -5,6 +5,7 @@ import api from '../services/api';
 export interface User {
   uid: string;
   email: string;
+  displayName?: string;
 }
 
 interface AuthContextType {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { UserPlus, Mail, User, Users, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2, Plus, ArrowRight } from 'lucide-react';
+import { UserPlus, Mail, User, Users, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Client {
@@ -31,6 +31,7 @@ interface DocumentRequest {
   status: string;
   type?: 'file' | 'text';
   textResponse?: string;
+  documentId?: string;
 }
 
 export const Clients = () => {
@@ -286,7 +287,7 @@ export const Clients = () => {
                     <div>
                       <h3 className="text-lg font-medium text-white tracking-wide flex items-center gap-2">
                         {client.name}
-                        {hasResetRequest && <AlertTriangle size={16} className="text-yellow-400 animate-pulse" title="Password Reset Requested" />}
+                        {hasResetRequest && <AlertTriangle size={16} className="text-yellow-400 animate-pulse" />}
                       </h3>
                       <p className="text-sm text-gray-500">{client.email}</p>
                     </div>
@@ -321,7 +322,6 @@ export const Clients = () => {
                     <button 
                       onClick={() => setPasswordModalClient(client)}
                       className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl transition-all duration-300 border border-white/10"
-                      title="Reset Password"
                     >
                       <Key size={16} />
                     </button>
@@ -329,7 +329,6 @@ export const Clients = () => {
                       <button 
                         onClick={() => handleApprove(client.id)}
                         className="px-4 py-2.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-xl transition-all duration-300 border border-green-500/20"
-                        title="Approve Account"
                       >
                         <CheckCircle2 size={16} />
                       </button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Upload, File, Trash2, Eye, Download } from 'lucide-react';
+import { Upload, File, Trash2, Eye } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Client {

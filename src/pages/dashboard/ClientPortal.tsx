@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Upload, AlertCircle, CheckCircle2, FileText, ChevronRight, Check, User } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle2, FileText, Check, User } from 'lucide-react';
 
 interface DocumentRequest {
   id: string;
@@ -11,6 +11,7 @@ interface DocumentRequest {
   type?: 'file' | 'text';
   textResponse?: string;
   createdAt: string;
+  documentId?: string;
 }
 
 export const ClientPortal = () => {
