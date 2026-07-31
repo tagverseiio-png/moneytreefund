@@ -249,6 +249,35 @@ export const updateClientLayout = async (req: Request, res: Response) => {
     const batch = db.batch();
     batch.update(db.collection('clients').doc(id), { layoutId });
     batch.update(db.collection('users').doc(id), { layoutId });
+
+    // Fetch the layout to get requiredDocs
+    const layoutDoc = await db.collection('document_layouts').doc(layoutId).get();
+    if (layoutDoc.exists) {
+      const requiredDocs = layoutDoc.data()?.requiredDocs || [];
+      
+      // Fetch existing requests to prevent duplicate generation
+      const existingReqsSnap = await db.collection('document_requests')
+        .where('clientId', '==', id)
+        .get();
+      const existingTitles = new Set(existingReqsSnap.docs.map(doc => doc.data().title));
+
+      for (const docReq of requiredDocs) {
+        if (!existingTitles.has(docReq.title)) {
+          const newReqRef = db.collection('document_requests').doc();
+          batch.set(newReqRef, {
+            id: newReqRef.id,
+            clientId: id,
+            title: docReq.title,
+            description: docReq.description || '',
+            type: docReq.type || 'file',
+            status: 'Pending',
+            createdAt: new Date().toISOString(),
+            createdBy: req.userRole === 'Admin' ? (req.user?.uid || 'admin') : 'system'
+          });
+        }
+      }
+    }
+
     await batch.commit();
 
     return res.status(200).json({ success: true, message: 'Client layout updated successfully' });
