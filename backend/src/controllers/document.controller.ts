@@ -152,7 +152,7 @@ export const deleteDocument = async (req: Request, res: Response) => {
     const docData = docSnapshot.data();
 
     // Security check: Only Admin can delete (or maybe the owner)
-    if (req.user?.role !== 'Admin') {
+    if (req.userRole !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
