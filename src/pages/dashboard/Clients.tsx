@@ -381,64 +381,85 @@ export const Clients = () => {
                 </div>
               </div>
 
-              {/* Right Column: Documents */}
-              <div className="bg-black/30 p-6 rounded-2xl border border-white/5 flex flex-col h-full min-h-[400px]">
-                <h4 className="text-[#D4AF37] text-xs uppercase tracking-widest font-semibold mb-6 flex items-center gap-2">
-                  <FileText size={14} /> Required Documents
-                </h4>
+              {/* Right Column: Profile Data & Documents */}
+              <div className="flex flex-col gap-6 h-full min-h-[400px]">
                 
-                <div className="flex-1 space-y-3 mb-8 overflow-y-auto custom-scrollbar pr-2">
-                  {loadingRequests ? (
-                    <div className="text-gray-500 text-sm italic text-center py-10">Loading requirements...</div>
-                  ) : clientRequests.length === 0 ? (
-                    <div className="text-gray-500 text-sm text-center py-10 bg-white/5 rounded-xl border border-white/5 border-dashed">No documents assigned yet.</div>
-                  ) : (
-                    clientRequests.map(req => (
-                      <div key={req.id} className="bg-white/5 hover:bg-white/10 border border-white/5 p-4 rounded-xl flex justify-between items-start transition-colors">
-                        <div className="flex-1 pr-4">
-                          <div className="text-gray-200 font-medium flex items-center gap-2">
-                            {req.title}
-                            <span className="text-[10px] uppercase tracking-wider text-[#D4AF37] border border-[#D4AF37]/30 px-1.5 py-0.5 rounded">
-                              {req.type === 'text' ? 'TEXT' : 'FILE'}
-                            </span>
+                {/* Profile Data Section */}
+                <div className="bg-black/30 p-6 rounded-2xl border border-white/5 flex flex-col flex-1">
+                  <h4 className="text-[#D4AF37] text-xs uppercase tracking-widest font-semibold mb-4 flex items-center gap-2">
+                    <User size={14} /> Profile Data
+                  </h4>
+                  <div className="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-2 max-h-[250px]">
+                    {loadingRequests ? (
+                      <div className="text-gray-500 text-sm italic text-center py-4">Loading...</div>
+                    ) : clientRequests.filter(r => r.type === 'text').length === 0 ? (
+                      <div className="text-gray-500 text-sm text-center py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">No profile data requested.</div>
+                    ) : (
+                      clientRequests.filter(r => r.type === 'text').map(req => (
+                        <div key={req.id} className="bg-white/5 border border-white/5 p-3 rounded-xl flex justify-between items-start">
+                          <div className="flex-1 pr-4">
+                            <div className="text-gray-300 text-sm font-medium">{req.title}</div>
+                            {req.status === 'Fulfilled' ? (
+                              <div className="mt-1 text-white text-sm bg-black/40 px-3 py-2 rounded-lg border border-white/10">
+                                {req.textResponse}
+                              </div>
+                            ) : (
+                              <div className="mt-1 text-gray-500 text-xs italic">Pending client response...</div>
+                            )}
                           </div>
-                          {req.description && <div className="text-gray-500 text-xs mt-1">{req.description}</div>}
-                          
-                          {/* If text type and fulfilled, show the response */}
-                          {req.type === 'text' && req.status === 'Fulfilled' && req.textResponse && (
-                            <div className="mt-3 bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-gray-300">
-                              <span className="block text-xs text-gray-500 uppercase tracking-widest mb-1">Response:</span>
-                              {req.textResponse}
-                            </div>
-                          )}
                         </div>
-                        <span className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap mt-0.5 shrink-0 ${
-                          req.status === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/30' :
-                          req.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
-                          'bg-gray-500/10 text-gray-400 border-gray-500/30'
-                        }`}>
-                          {req.status}
-                        </span>
-                      </div>
-                    ))
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                <div className="pt-5 border-t border-white/5 mt-auto shrink-0">
-                  <form onSubmit={handleCreateRequest} className="space-y-3">
-                    <input type="text" required value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} className="w-full bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all" placeholder="New Document Title (e.g. Identity Proof)" />
-                    <div className="flex gap-2">
-                      <select value={reqType} onChange={(e) => setReqType(e.target.value)} className="w-1/3 bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-[#D4AF37] transition-all appearance-none">
-                        <option value="file">File Upload</option>
-                        <option value="text">Text Input</option>
-                      </select>
-                      <input type="text" value={reqDesc} onChange={(e) => setReqDesc(e.target.value)} className="w-2/3 bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all" placeholder="Instructions (Optional)" />
-                      <button type="submit" disabled={requesting || !reqTitle} className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center justify-center">
-                        <ArrowRight size={18} />
-                      </button>
-                    </div>
-                  </form>
+                {/* Documents Section */}
+                <div className="bg-black/30 p-6 rounded-2xl border border-white/5 flex flex-col flex-1">
+                  <h4 className="text-[#D4AF37] text-xs uppercase tracking-widest font-semibold mb-4 flex items-center gap-2">
+                    <FileText size={14} /> Document Uploads
+                  </h4>
+                  <div className="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-2 max-h-[250px]">
+                    {loadingRequests ? (
+                      <div className="text-gray-500 text-sm italic text-center py-4">Loading...</div>
+                    ) : clientRequests.filter(r => r.type !== 'text').length === 0 ? (
+                      <div className="text-gray-500 text-sm text-center py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">No documents requested.</div>
+                    ) : (
+                      clientRequests.filter(r => r.type !== 'text').map(req => (
+                        <div key={req.id} className="bg-white/5 border border-white/5 p-3 rounded-xl flex justify-between items-center">
+                          <div>
+                            <div className="text-gray-300 text-sm font-medium">{req.title}</div>
+                            <div className="text-gray-500 text-xs mt-0.5">{req.description || 'File upload'}</div>
+                          </div>
+                          <span className={`text-[10px] px-2 py-1 rounded-full border uppercase tracking-wider ${
+                            req.status === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/30' :
+                            req.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
+                            'bg-gray-500/10 text-gray-400 border-gray-500/30'
+                          }`}>
+                            {req.status}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Create New Request */}
+                  <div className="pt-4 border-t border-white/5 mt-4 shrink-0">
+                    <form onSubmit={handleCreateRequest} className="space-y-3">
+                      <input type="text" required value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} className="w-full bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-2 text-sm text-white input-glow transition-all" placeholder="New Field/Document Title" />
+                      <div className="flex gap-2">
+                        <select value={reqType} onChange={(e) => setReqType(e.target.value)} className="w-1/3 bg-[#0A2A1B] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-[#D4AF37] transition-all appearance-none">
+                          <option value="file">File</option>
+                          <option value="text">Text</option>
+                        </select>
+                        <input type="text" value={reqDesc} onChange={(e) => setReqDesc(e.target.value)} className="w-2/3 bg-[#0A2A1B] border border-white/10 rounded-xl px-3 py-2 text-sm text-white input-glow transition-all" placeholder="Instructions (Opt)" />
+                        <button type="submit" disabled={requesting || !reqTitle} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center justify-center">
+                          <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>

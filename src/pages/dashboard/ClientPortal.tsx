@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Upload, AlertCircle, CheckCircle2, FileText, ChevronRight, Check } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle2, FileText, ChevronRight, Check, User } from 'lucide-react';
 
 interface DocumentRequest {
   id: string;
@@ -61,7 +61,6 @@ export const ClientPortal = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      // In a robust implementation, the endpoint above would also update the req status to Fulfilled.
       alert('Document securely uploaded. Our team will review it shortly.');
       fetchProfileAndRequests();
     } catch (error) {
@@ -79,7 +78,7 @@ export const ClientPortal = () => {
     try {
       setUploadingFor(requestId);
       await api.put(`/clients/${user.uid}/requests/${requestId}/text`, { textResponse });
-      alert('Response securely submitted. Our team will review it shortly.');
+      alert('Response securely submitted.');
       fetchProfileAndRequests();
     } catch (error) {
       console.error('Submission failed:', error);
@@ -98,6 +97,9 @@ export const ClientPortal = () => {
     );
   }
 
+  const textRequests = requests.filter(r => r.type === 'text');
+  const fileRequests = requests.filter(r => r.type !== 'text');
+
   const pendingRequests = requests.filter(r => r.status === 'Pending').length;
   const totalRequests = requests.length;
   const progressPercent = totalRequests === 0 ? 100 : Math.round(((totalRequests - pendingRequests) / totalRequests) * 100);
@@ -105,7 +107,6 @@ export const ClientPortal = () => {
   return (
     <div className="max-w-5xl space-y-10 animate-fade-in-up">
       <div className="glass-panel p-10 rounded-3xl relative overflow-hidden border border-white/10 shadow-2xl">
-        {/* Background glow specific to banner */}
         <div className="absolute top-[-50%] right-[-10%] w-[60%] h-[200%] bg-gradient-to-l from-[#D4AF37]/10 to-transparent blur-[80px] pointer-events-none" />
         
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
@@ -115,7 +116,7 @@ export const ClientPortal = () => {
               <span className="text-gradient-gold font-medium">{user?.displayName || user?.email?.split('@')[0]}</span>
             </h2>
             <p className="text-gray-400 font-light text-lg max-w-lg leading-relaxed">
-              Complete your onboarding process by providing the requested documents below. Your secure vault is ready.
+              Complete your onboarding profile and provide any required documents below.
             </p>
           </div>
           
@@ -153,88 +154,114 @@ export const ClientPortal = () => {
           <p className="text-gray-300 mt-1 leading-relaxed text-sm md:text-base">
             {status === 'Active' 
               ? 'Your account is fully approved. You have full access to our premium suite.' 
-              : 'Your account is pending administrator approval. Please provide the required documents below to expedite verification.'}
+              : 'Your account is pending administrator approval. Please complete your profile below to expedite verification.'}
           </p>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-serif text-white tracking-wide flex items-center gap-2">
-            <FileText className="text-[#D4AF37]" size={24} /> Action Items
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Profile Form (Text Requests) */}
+        <div className="glass-panel p-8 rounded-3xl border border-white/5 flex flex-col h-full relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 blur-[60px] pointer-events-none" />
+          
+          <h3 className="text-xl font-serif text-white tracking-wide flex items-center gap-2 mb-6">
+            <User className="text-[#D4AF37]" size={22} /> Profile Data
           </h3>
-        </div>
-        
-        {requests.length === 0 ? (
-          <div className="glass-panel p-12 text-center rounded-3xl border border-white/5 border-dashed">
-            <CheckCircle2 size={48} className="mx-auto text-green-500/50 mb-4" />
-            <h4 className="text-xl font-medium text-gray-200 mb-2">You're all caught up!</h4>
-            <p className="text-gray-500">No documents are currently requested by your administrator.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {requests.map((req, idx) => {
-              const isPending = req.status === 'Pending';
-              return (
-                <div 
-                  key={req.id} 
-                  className={`glass-panel p-6 rounded-2xl border transition-all duration-300 animate-fade-in-up animate-delay-${(idx % 4 + 1) * 100} ${
-                    isPending ? 'border-white/10 hover:border-[#D4AF37]/40 hover:bg-white/[0.04]' : 'border-green-500/20 bg-green-500/[0.02]'
-                  }`}
-                >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h4 className="text-lg font-medium text-gray-100">{req.title}</h4>
-                        {!isPending && <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1"><Check size={12}/> Received</span>}
-                      </div>
-                      <p className="text-sm text-gray-400 max-w-2xl">{req.description || 'Please provide a clear, legible copy of this document.'}</p>
+
+          {textRequests.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 flex-1 flex flex-col items-center justify-center border border-white/5 border-dashed rounded-xl">
+              <CheckCircle2 size={32} className="text-green-500/30 mb-3" />
+              <p>No profile fields required.</p>
+            </div>
+          ) : (
+            <div className="space-y-6 flex-1">
+              {textRequests.map((req) => {
+                const isPending = req.status === 'Pending';
+                return (
+                  <div key={req.id} className="group">
+                    <div className="flex justify-between items-end mb-2">
+                      <label className="text-sm font-medium text-gray-300 tracking-wide">{req.title}</label>
+                      {!isPending && (
+                        <span className="text-[10px] uppercase tracking-wider text-green-400 bg-green-400/10 px-2 py-0.5 rounded flex items-center gap-1">
+                          <Check size={10} /> Saved
+                        </span>
+                      )}
                     </div>
-                    
-                    <div className="shrink-0 w-full md:w-auto">
+                    {isPending ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={textInputs[req.id] || ''}
+                          onChange={(e) => setTextInputs({ ...textInputs, [req.id]: e.target.value })}
+                          placeholder={req.description || "Enter value"}
+                          className="flex-1 bg-black/40 border border-white/10 focus:border-[#D4AF37]/50 rounded-xl px-4 py-2.5 text-sm text-white transition-all outline-none"
+                        />
+                        <button
+                          onClick={() => handleTextSubmit(req.id)}
+                          disabled={!textInputs[req.id] || uploadingFor === req.id}
+                          className="px-4 py-2 bg-[#D4AF37] hover:bg-[#FCEBBA] text-black font-semibold rounded-xl transition-all disabled:opacity-50 text-sm whitespace-nowrap"
+                        >
+                          {uploadingFor === req.id ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm text-gray-400 flex items-center cursor-not-allowed">
+                        {req.textResponse || 'Submitted'}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Required Documents (File Requests) */}
+        <div className="glass-panel p-8 rounded-3xl border border-white/5 flex flex-col h-full relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 blur-[60px] pointer-events-none" />
+          
+          <h3 className="text-xl font-serif text-white tracking-wide flex items-center gap-2 mb-6">
+            <FileText className="text-[#D4AF37]" size={22} /> Document Uploads
+          </h3>
+
+          {fileRequests.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 flex-1 flex flex-col items-center justify-center border border-white/5 border-dashed rounded-xl">
+              <CheckCircle2 size={32} className="text-green-500/30 mb-3" />
+              <p>No documents required.</p>
+            </div>
+          ) : (
+            <div className="space-y-4 flex-1">
+              {fileRequests.map((req) => {
+                const isPending = req.status === 'Pending';
+                return (
+                  <div key={req.id} className={`p-4 rounded-xl border transition-all ${isPending ? 'bg-black/20 border-white/10 hover:border-[#D4AF37]/30' : 'bg-green-500/5 border-green-500/20'}`}>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-gray-200 text-sm">{req.title}</h4>
+                          {!isPending && <span className="bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase">Uploaded</span>}
+                        </div>
+                        <p className="text-xs text-gray-500">{req.description || 'Securely upload your file.'}</p>
+                      </div>
+                      
                       {isPending ? (
-                        req.type === 'text' ? (
-                          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0">
-                            <input
-                              type="text"
-                              value={textInputs[req.id] || ''}
-                              onChange={(e) => setTextInputs({ ...textInputs, [req.id]: e.target.value })}
-                              placeholder="Enter your response..."
-                              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all md:w-64"
-                            />
-                            <button
-                              onClick={() => handleTextSubmit(req.id)}
-                              disabled={!textInputs[req.id] || uploadingFor === req.id}
-                              className="px-6 py-3 bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-[#FCEBBA] transition-all rounded-xl font-medium text-sm flex items-center justify-center gap-2 group disabled:opacity-50 disabled:pointer-events-none"
-                            >
-                              {uploadingFor === req.id ? 'Submitting...' : 'Submit'}
-                              <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all" />
-                            </button>
-                          </div>
-                        ) : (
-                          <label className={`w-full md:w-auto cursor-pointer px-6 py-3 bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-[#FCEBBA] transition-all rounded-xl font-medium text-sm flex items-center justify-center gap-2 group ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
-                            <Upload size={18} className="group-hover:-translate-y-1 transition-transform" />
-                            {uploadingFor === req.id ? 'Uploading to Vault...' : 'Secure Upload'}
-                            <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all" />
-                            <input 
-                              type="file" 
-                              className="hidden" 
-                              onChange={(e) => handleUploadFulfillment(e, req.id)}
-                            />
-                          </label>
-                        )
+                        <label className={`shrink-0 cursor-pointer px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white transition-all rounded-lg font-medium text-xs flex items-center justify-center gap-2 ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
+                          <Upload size={14} />
+                          {uploadingFor === req.id ? 'Uploading...' : 'Upload File'}
+                          <input type="file" className="hidden" onChange={(e) => handleUploadFulfillment(e, req.id)} />
+                        </label>
                       ) : (
-                        <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed">
-                          <CheckCircle2 size={18} className="text-green-500/50" /> {req.type === 'text' ? 'Submitted' : 'Uploaded'}
+                        <div className="shrink-0 px-4 py-2 bg-transparent text-gray-400 text-xs font-medium flex items-center justify-center gap-1">
+                          <CheckCircle2 size={14} className="text-green-500/50" /> Vaulted
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
