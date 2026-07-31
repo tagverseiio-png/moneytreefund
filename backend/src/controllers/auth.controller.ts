@@ -67,7 +67,7 @@ export const login = async (req: Request, res: Response) => {
       maxAge: expiresIn,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: 'none'
     });
 
     return res.status(200).json({ success: true, message: 'Logged in successfully' });
