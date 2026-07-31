@@ -374,7 +374,7 @@ export const Clients = () => {
                       <option value="" disabled>Select Layout</option>
                       {layouts.map(layout => <option key={layout.id} value={layout.id}>{layout.name}</option>)}
                     </select>
-                    <button type="submit" disabled={settingLayout || !newLayoutId || newLayoutId === profileModalClient.layoutId} className="px-6 py-3 bg-[#D4AF37] text-black font-semibold rounded-xl hover:bg-[#FCEBBA] transition-all disabled:opacity-50">
+                    <button type="submit" disabled={settingLayout || !newLayoutId} className="px-6 py-3 bg-[#D4AF37] text-black font-semibold rounded-xl hover:bg-[#FCEBBA] transition-all disabled:opacity-50">
                       {settingLayout ? 'Saving...' : 'Apply'}
                     </button>
                   </form>
