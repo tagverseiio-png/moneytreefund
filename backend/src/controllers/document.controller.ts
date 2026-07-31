@@ -39,7 +39,7 @@ export const getDocuments = async (req: Request, res: Response) => {
 // Upload a new document
 export const uploadDocument = async (req: Request, res: Response) => {
   try {
-    const { clientId, clientName } = req.body;
+    const { clientId, clientName, requestId } = req.body;
     const file = req.file;
 
     if (!file) {
@@ -79,6 +79,15 @@ export const uploadDocument = async (req: Request, res: Response) => {
     };
 
     await docRef.set(docData);
+
+    // If this upload fulfills a document request, update the request
+    if (requestId) {
+      await db.collection('document_requests').doc(requestId).update({
+        status: 'Fulfilled',
+        documentId: docRef.id,
+        updatedAt: new Date().toISOString()
+      });
+    }
 
     return res.status(201).json({
       success: true,

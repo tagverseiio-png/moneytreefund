@@ -173,6 +173,47 @@ export const Clients = () => {
     }
   };
 
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+
+  const handleAdminUpload = async (e: React.ChangeEvent<HTMLInputElement>, requestId: string, clientId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingFor(requestId);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('clientId', clientId);
+      formData.append('requestId', requestId);
+      
+      await api.post('/documents', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      alert('Document securely uploaded on behalf of client.');
+      fetchClientRequests(clientId);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Failed to upload document');
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  const handleDownload = async (documentId: string) => {
+    try {
+      const res = await api.get(`/documents/${documentId}/url`);
+      if (res.data.success && res.data.data.url) {
+        window.open(res.data.data.url, '_blank');
+      } else {
+        alert('Could not retrieve document URL.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to get document.');
+    }
+  };
+
   const getLayoutName = (id?: string) => layouts.find(l => l.id === id)?.name || 'Unassigned';
 
   return (
@@ -425,18 +466,32 @@ export const Clients = () => {
                       <div className="text-gray-500 text-sm text-center py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">No documents requested.</div>
                     ) : (
                       clientRequests.filter(r => r.type !== 'text').map(req => (
-                        <div key={req.id} className="bg-white/5 border border-white/5 p-3 rounded-xl flex justify-between items-center">
-                          <div>
+                        <div key={req.id} className="bg-white/5 border border-white/5 p-3 rounded-xl flex justify-between items-center gap-2">
+                          <div className="flex-1">
                             <div className="text-gray-300 text-sm font-medium">{req.title}</div>
                             <div className="text-gray-500 text-xs mt-0.5">{req.description || 'File upload'}</div>
                           </div>
-                          <span className={`text-[10px] px-2 py-1 rounded-full border uppercase tracking-wider ${
-                            req.status === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/30' :
-                            req.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
-                            'bg-gray-500/10 text-gray-400 border-gray-500/30'
-                          }`}>
-                            {req.status}
-                          </span>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            {req.status === 'Pending' ? (
+                              <label className={`cursor-pointer px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[10px] uppercase font-bold tracking-wider transition-all ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
+                                {uploadingFor === req.id ? 'Uploading' : 'Upload'}
+                                <input type="file" className="hidden" onChange={(e) => handleAdminUpload(e, req.id, profileModalClient.id)} />
+                              </label>
+                            ) : req.documentId ? (
+                              <button onClick={() => handleDownload(req.documentId!)} className="px-3 py-1 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#D4AF37] rounded text-[10px] uppercase font-bold tracking-wider transition-all">
+                                View File
+                              </button>
+                            ) : null}
+                            
+                            <span className={`text-[10px] px-2 py-1 rounded-full border uppercase tracking-wider ${
+                              req.status === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/30' :
+                              req.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
+                              'bg-green-500/10 text-green-400 border-green-500/30'
+                            }`}>
+                              {req.status}
+                            </span>
+                          </div>
                         </div>
                       ))
                     )}

@@ -56,6 +56,7 @@ export const ClientPortal = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('clientId', user.uid);
+      formData.append('requestId', requestId);
       
       await api.post('/documents', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
