@@ -153,8 +153,9 @@ export const login = async (req: Request, res: Response) => {
 
     return res.status(200).json({ success: true, message: 'Logged in successfully' });
   } catch (error: any) {
-    console.error('Login error:', error.response?.data || error.message);
-    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const firebaseError = error.response?.data?.error?.message || error.message || 'Unknown error';
+    console.error('Login error:', firebaseError);
+    return res.status(401).json({ success: false, message: `Login failed: ${firebaseError}` });
   }
 };
 
