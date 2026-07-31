@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createClient, getClients, approveClient, getClientRequests, createDocumentRequest, getPasswordResets, changePassword } from '../controllers/client.controller';
+import { createClient, getClients, approveClient, getClientRequests, createDocumentRequest, getPasswordResets, changePassword, updateClientLayout } from '../controllers/client.controller';
 import { verifyToken, requireRole } from '../middleware/auth';
 
 const router = Router();
@@ -15,6 +15,9 @@ router.get('/', verifyToken, getClients);
 
 // Approve a client
 router.put('/:id/approve', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), approveClient);
+
+// Change client layout
+router.put('/:id/layout', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), updateClientLayout);
 
 // Change client password
 router.put('/:id/password', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), changePassword);

@@ -1,15 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+
+interface Layout {
+  id: string;
+  name: string;
+}
 
 export const SignupPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [layoutId, setLayoutId] = useState('');
+  const [layouts, setLayouts] = useState<Layout[]>([]);
+  
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchLayouts = async () => {
+      try {
+        const res = await api.get('/settings/layouts/public');
+        if (res.data.success) {
+          setLayouts(res.data.data);
+          if (res.data.data.length > 0) {
+            setLayoutId(res.data.data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load layouts', err);
+      }
+    };
+    fetchLayouts();
+  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +42,7 @@ export const SignupPage = () => {
     setError('');
 
     try {
-      await api.post('/auth/signup', { name, email, password });
+      await api.post('/auth/signup', { name, email, password, layoutId });
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
@@ -87,6 +112,22 @@ export const SignupPage = () => {
               className="w-full px-4 py-2 bg-black/50 border border-white/10 rounded focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
             />
           </div>
+
+          {layouts.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Account Profile / KYC Layout</label>
+              <select
+                value={layoutId}
+                onChange={(e) => setLayoutId(e.target.value)}
+                required
+                className="w-full px-4 py-2 bg-black/50 border border-white/10 rounded focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors text-white"
+              >
+                {layouts.map(layout => (
+                  <option key={layout.id} value={layout.id}>{layout.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <button
             type="submit"

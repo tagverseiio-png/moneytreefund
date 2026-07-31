@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle } from 'lucide-react';
+import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Client {
@@ -8,6 +8,7 @@ interface Client {
   name: string;
   email: string;
   status?: string;
+  layoutId?: string;
   createdAt: string;
 }
 
@@ -18,10 +19,16 @@ interface PasswordResetRequest {
   createdAt: string;
 }
 
+interface Layout {
+  id: string;
+  name: string;
+}
+
 export const Clients = () => {
   const { role } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [passwordResets, setPasswordResets] = useState<PasswordResetRequest[]>([]);
+  const [layouts, setLayouts] = useState<Layout[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form state for creating client
@@ -43,18 +50,27 @@ export const Clients = () => {
   const [newPassword, setNewPassword] = useState('');
   const [settingPassword, setSettingPassword] = useState(false);
 
+  // Modal state for changing layout
+  const [layoutModalClient, setLayoutModalClient] = useState<Client | null>(null);
+  const [newLayoutId, setNewLayoutId] = useState('');
+  const [settingLayout, setSettingLayout] = useState(false);
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [clientsRes, resetsRes] = await Promise.all([
+      const [clientsRes, resetsRes, layoutsRes] = await Promise.all([
         api.get('/clients'),
-        role === 'Admin' ? api.get('/clients/password-resets') : Promise.resolve({ data: { success: true, data: [] } })
+        role === 'Admin' ? api.get('/clients/password-resets') : Promise.resolve({ data: { success: true, data: [] } }),
+        api.get('/settings/layouts/public') // Admin can read it here too, public is fine
       ]);
       if (clientsRes.data.success) {
         setClients(clientsRes.data.data);
       }
       if (resetsRes.data.success) {
         setPasswordResets(resetsRes.data.data);
+      }
+      if (layoutsRes.data.success) {
+        setLayouts(layoutsRes.data.data);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -140,13 +156,44 @@ export const Clients = () => {
       alert('Password updated successfully.');
       setPasswordModalClient(null);
       setNewPassword('');
-      fetchData(); // Refresh resets
+      fetchData();
     } catch (error) {
       console.error('Password reset failed:', error);
       alert('Failed to update password.');
     } finally {
       setSettingPassword(false);
     }
+  };
+
+  const handleChangeLayout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!layoutModalClient || !newLayoutId) return;
+
+    try {
+      setSettingLayout(true);
+      await api.put(`/clients/${layoutModalClient.id}/layout`, {
+        layoutId: newLayoutId
+      });
+      alert('Profile Layout updated successfully. Note: Document requests are NOT automatically re-generated when changing manually.');
+      setLayoutModalClient(null);
+      setNewLayoutId('');
+      fetchData();
+    } catch (error) {
+      console.error('Layout update failed:', error);
+      alert('Failed to update profile layout.');
+    } finally {
+      setSettingLayout(false);
+    }
+  };
+
+  const openLayoutModal = (client: Client) => {
+    setLayoutModalClient(client);
+    setNewLayoutId(client.layoutId || (layouts.length > 0 ? layouts[0].id : ''));
+  };
+
+  const getLayoutName = (id?: string) => {
+    if (!id) return 'Unassigned';
+    return layouts.find(l => l.id === id)?.name || 'Unknown';
   };
 
   return (
@@ -252,6 +299,7 @@ export const Clients = () => {
             <thead className="bg-black/20 border-b border-white/5">
               <tr>
                 <th className="px-6 py-4 text-sm font-medium text-gray-400">Client</th>
+                <th className="px-6 py-4 text-sm font-medium text-gray-400">Profile Layout</th>
                 <th className="px-6 py-4 text-sm font-medium text-gray-400">Status</th>
                 <th className="px-6 py-4 text-sm font-medium text-gray-400">Date Added</th>
                 <th className="px-6 py-4 text-sm font-medium text-gray-400 text-right">Actions</th>
@@ -270,6 +318,11 @@ export const Clients = () => {
                       <div className="text-sm text-gray-500">{client.email}</div>
                     </td>
                     <td className="px-6 py-4">
+                      <span className="text-gray-300 text-sm bg-white/5 px-2 py-1 rounded">
+                        {getLayoutName(client.layoutId)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${client.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
                         {client.status || 'Pending'}
                       </span>
@@ -278,6 +331,13 @@ export const Clients = () => {
                     <td className="px-6 py-4 text-right space-x-2">
                       {role === 'Admin' && (
                         <>
+                          <button 
+                            onClick={() => openLayoutModal(client)}
+                            className="px-3 py-1.5 bg-gray-500/10 text-gray-300 hover:bg-gray-500/20 rounded text-sm transition-colors border border-gray-500/30"
+                            title="Change Profile Layout"
+                          >
+                            <Settings2 size={16} className="inline mr-1" /> Layout
+                          </button>
                           <button 
                             onClick={() => setPasswordModalClient(client)}
                             className="px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded text-sm transition-colors border border-blue-500/30"
@@ -311,6 +371,55 @@ export const Clients = () => {
           </table>
         )}
       </div>
+
+      {/* Change Layout Modal */}
+      {layoutModalClient && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#051a10] border border-white/10 p-6 rounded-lg shadow-2xl max-w-md w-full relative">
+            <button 
+              onClick={() => setLayoutModalClient(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-xl font-light text-white mb-2">Change Profile Layout</h3>
+            <p className="text-gray-400 text-sm mb-6">Update the onboarding profile for <span className="text-[#D4AF37]">{layoutModalClient.name}</span>.</p>
+            
+            <form onSubmit={handleChangeLayout} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Select Layout</label>
+                <select
+                  value={newLayoutId}
+                  onChange={(e) => setNewLayoutId(e.target.value)}
+                  required
+                  className="w-full bg-[#03120B] border border-white/10 rounded-md px-4 py-2 text-white focus:outline-none focus:border-[#D4AF37]"
+                >
+                  <option value="" disabled>Select a Layout</option>
+                  {layouts.map(layout => (
+                    <option key={layout.id} value={layout.id}>{layout.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setLayoutModalClient(null)}
+                  className="px-4 py-2 text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={settingLayout || !newLayoutId}
+                  className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-md hover:bg-[#FDFBF7] transition-all disabled:opacity-50"
+                >
+                  {settingLayout ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Document Request Modal */}
       {requestModalClient && (
@@ -384,7 +493,7 @@ export const Clients = () => {
               <div>
                 <label className="block text-sm text-gray-300 mb-1">New Password</label>
                 <input
-                  type="text" // using text so admin can see what they generated
+                  type="text"
                   required
                   minLength={6}
                   value={newPassword}

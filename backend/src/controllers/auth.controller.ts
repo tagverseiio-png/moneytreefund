@@ -41,13 +41,20 @@ export const getMe = async (req: Request, res: Response) => {
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, layoutId } = req.body;
     
-    if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+    if (!name || !email || !password || !layoutId) {
+      return res.status(400).json({ success: false, message: 'Name, email, password, and layoutId are required' });
     }
 
-    // 1. Create user in Firebase Auth
+    // 1. Fetch layout to ensure it exists
+    const layoutSnapshot = await db.collection('document_layouts').doc(layoutId).get();
+    if (!layoutSnapshot.exists) {
+      return res.status(400).json({ success: false, message: 'Invalid layout selected' });
+    }
+    const layout = layoutSnapshot.data();
+
+    // 2. Create user in Firebase Auth
     const userRecord = await auth.createUser({
       email,
       password,
@@ -56,26 +63,45 @@ export const signup = async (req: Request, res: Response) => {
 
     const uid = userRecord.uid;
 
-    // 2. Set user role and Pending status in `users` collection
+    // 3. Set user role and Pending status
     await db.collection('users').doc(uid).set({
       email,
       name,
       role: 'Client',
       status: 'Pending',
+      layoutId,
       createdAt: new Date().toISOString()
     });
 
-    // 3. Set client metadata in `clients` collection
+    // 4. Set client metadata
     const clientData = {
       name,
       email,
       id: uid,
       status: 'Pending',
+      layoutId,
       createdAt: new Date().toISOString(),
       createdBy: 'self-signup'
     };
-
     await db.collection('clients').doc(uid).set(clientData);
+
+    // 5. Create Document Requests based on the layout
+    if (layout && Array.isArray(layout.requiredDocs)) {
+      const batch = db.batch();
+      layout.requiredDocs.forEach((doc: any) => {
+        const reqRef = db.collection('document_requests').doc();
+        batch.set(reqRef, {
+          id: reqRef.id,
+          clientId: uid,
+          title: doc.title,
+          description: doc.description || '',
+          status: 'Pending',
+          createdAt: new Date().toISOString(),
+          createdBy: 'system' // Auto-generated
+        });
+      });
+      await batch.commit();
+    }
 
     return res.status(201).json({
       success: true,

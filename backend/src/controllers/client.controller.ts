@@ -193,3 +193,28 @@ export const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+export const updateClientLayout = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { layoutId } = req.body;
+
+    if (req.user?.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (!layoutId) {
+      return res.status(400).json({ success: false, message: 'Layout ID is required' });
+    }
+
+    const batch = db.batch();
+    batch.update(db.collection('clients').doc(id), { layoutId });
+    batch.update(db.collection('users').doc(id), { layoutId });
+    await batch.commit();
+
+    return res.status(200).json({ success: true, message: 'Client layout updated successfully' });
+  } catch (error) {
+    console.error('Error updating client layout:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
