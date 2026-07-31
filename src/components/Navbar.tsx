@@ -44,6 +44,11 @@ export const Navbar = ({ onHome, onSectionClick }: NavbarProps) => {
               <a href="#services" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Services</a>
               <a href="#process" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Process</a>
               <a href="#contact" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Contact</a>
+              
+              <div className="flex items-center gap-6 ml-4 pl-8 border-l border-[#D4AF37]/20">
+                <a href="/login" className="text-[#D4AF37] hover:text-[#FDFBF7] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Client Login</a>
+                <a href="/login" className="px-5 py-2.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#03120B] transition-all text-[10px] font-bold tracking-[0.25em] uppercase whitespace-nowrap">Admin Login</a>
+              </div>
             </div>
 
             <div 
@@ -83,6 +88,10 @@ export const Navbar = ({ onHome, onSectionClick }: NavbarProps) => {
           <a href="#services" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Services</a>
           <a href="#process" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Process</a>
           <a href="#contact" onClick={handleLinkClick} className="text-[#FDFBF7] hover:text-[#D4AF37] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Contact</a>
+          
+          <div className="w-full h-px bg-[#D4AF37]/20 my-2"></div>
+          <a href="/login" className="text-[#D4AF37] hover:text-[#FDFBF7] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Client Login</a>
+          <a href="/login" className="text-[#D4AF37] hover:text-[#FDFBF7] transition-colors text-[10px] font-bold tracking-[0.25em] uppercase">Admin Login</a>
         </div>
       </div>
     </nav>
