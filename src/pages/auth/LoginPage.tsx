@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/config';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +9,7 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { checkAuth } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,10 +17,11 @@ export const LoginPage = () => {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await api.post('/auth/login', { email, password });
+      await checkAuth();
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      setError(err.response?.data?.message || 'Failed to login');
     } finally {
       setLoading(false);
     }

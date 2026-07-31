@@ -13,21 +13,19 @@ declare global {
 }
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
+  const sessionCookie = req.cookies.session || '';
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
+  if (!sessionCookie) {
+    return res.status(401).json({ success: false, message: 'Unauthorized: No session cookie provided' });
   }
 
-  const token = authHeader.split(' ')[1];
-
   try {
-    const decodedToken = await auth.verifyIdToken(token);
-    req.user = decodedToken;
+    const decodedClaims = await auth.verifySessionCookie(sessionCookie, true /** checkRevoked */);
+    req.user = decodedClaims;
     next();
   } catch (error) {
-    console.error('Error verifying Firebase token:', error);
-    return res.status(403).json({ success: false, message: 'Forbidden: Invalid token' });
+    console.error('Error verifying Firebase session cookie:', error);
+    return res.status(403).json({ success: false, message: 'Forbidden: Invalid or expired session' });
   }
 };
 

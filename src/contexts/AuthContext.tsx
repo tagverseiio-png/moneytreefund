@@ -1,14 +1,17 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import type { User } from 'firebase/auth';
-import { auth } from '../firebase/config';
 import api from '../services/api';
+
+export interface User {
+  uid: string;
+  email: string;
+}
 
 interface AuthContextType {
   user: User | null;
   role: string | null;
   loading: boolean;
+  checkAuth: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -19,34 +22,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser) {
-        try {
-          const response = await api.get('/auth/me');
-          setRole(response.data.data.role || 'Client');
-        } catch (error) {
-          console.error("Error fetching user role from API:", error);
-          setRole('Client'); // Default fallback
-        }
+  const checkAuth = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      if (response.data.success) {
+        const { uid, email, role } = response.data.data;
+        setUser({ uid, email });
+        setRole(role || 'Client');
       } else {
+        setUser(null);
         setRole(null);
       }
-      
+    } catch (error) {
+      console.error("Error verifying authentication:", error);
+      setUser(null);
+      setRole(null);
+    } finally {
       setLoading(false);
-    });
+    }
+  };
 
-    return unsubscribe;
+  useEffect(() => {
+    checkAuth();
   }, []);
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error("Error logging out", err);
+    } finally {
+      setUser(null);
+      setRole(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, signOut }}>
+    <AuthContext.Provider value={{ user, role, loading, checkAuth, signOut }}>
       {!loading && children}
     </AuthContext.Provider>
   );
