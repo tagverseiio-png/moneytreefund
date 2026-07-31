@@ -167,6 +167,23 @@ export const deleteDocument = async (req: Request, res: Response) => {
     // Delete from Firestore
     await docRef.delete();
 
+    // Revert any associated document request back to Pending
+    const requestsSnapshot = await db.collection('document_requests')
+      .where('documentId', '==', id)
+      .get();
+      
+    if (!requestsSnapshot.empty) {
+      const batch = db.batch();
+      requestsSnapshot.docs.forEach(reqDoc => {
+        batch.update(reqDoc.ref, {
+          status: 'Pending',
+          documentId: null,
+          updatedAt: new Date().toISOString()
+        });
+      });
+      await batch.commit();
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Document deleted successfully'

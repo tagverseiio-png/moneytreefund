@@ -214,6 +214,17 @@ export const Clients = () => {
     }
   };
 
+  const handleDeleteDocument = async (documentId: string, clientId: string) => {
+    if (!window.confirm('Are you sure you want to delete this document? The requirement will return to Pending.')) return;
+    try {
+      await api.delete(`/documents/${documentId}`);
+      fetchClientRequests(clientId);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete document.');
+    }
+  };
+
   const getLayoutName = (id?: string) => layouts.find(l => l.id === id)?.name || 'Unassigned';
 
   return (
@@ -479,9 +490,14 @@ export const Clients = () => {
                                 <input type="file" className="hidden" onChange={(e) => handleAdminUpload(e, req.id, profileModalClient.id)} />
                               </label>
                             ) : req.documentId ? (
-                              <button onClick={() => handleDownload(req.documentId!)} className="px-3 py-1 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#D4AF37] rounded text-[10px] uppercase font-bold tracking-wider transition-all">
-                                View File
-                              </button>
+                              <>
+                                <button onClick={() => handleDownload(req.documentId!)} className="px-3 py-1 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#D4AF37] rounded text-[10px] uppercase font-bold tracking-wider transition-all">
+                                  View File
+                                </button>
+                                <button onClick={() => handleDeleteDocument(req.documentId!, profileModalClient.id)} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded text-[10px] uppercase font-bold tracking-wider transition-all">
+                                  Delete
+                                </button>
+                              </>
                             ) : null}
                             
                             <span className={`text-[10px] px-2 py-1 rounded-full border uppercase tracking-wider ${
