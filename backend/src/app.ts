@@ -7,6 +7,7 @@ import clientRoutes from './routes/client.routes';
 import authRoutes from './routes/auth.routes';
 import documentRoutes from './routes/document.routes';
 import settingsRoutes from './routes/settings.routes';
+import statsRoutes from './routes/stats.routes';
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -1,14 +1,44 @@
+import { useState, useEffect } from 'react';
 import { Users, Briefcase, FileText, Activity } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 export const DashboardOverview = () => {
   const { user, role } = useAuth();
+  
+  const [stats, setStats] = useState({
+    totalClients: 0,
+    activeTrusts: 0,
+    pendingDocuments: 0,
+    recentActivity: 0
+  });
 
-  const stats = [
-    { title: 'Total Clients', value: '12', icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { title: 'Active Trusts', value: '3', icon: Briefcase, color: 'text-[#D4AF37]', bg: 'bg-[#D4AF37]/10' },
-    { title: 'Pending Documents', value: '8', icon: FileText, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-    { title: 'Recent Activity', value: '24', icon: Activity, color: 'text-green-400', bg: 'bg-green-500/10' },
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        if (role === 'Admin') {
+          const res = await api.get('/stats');
+          if (res.data.success) {
+            setStats(res.data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchStats();
+  }, [role]);
+
+  const displayStats = [
+    { title: 'Total Clients', value: loading ? '...' : stats.totalClients, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { title: 'Active Trusts', value: loading ? '...' : stats.activeTrusts, icon: Briefcase, color: 'text-[#D4AF37]', bg: 'bg-[#D4AF37]/10' },
+    { title: 'Pending Documents', value: loading ? '...' : stats.pendingDocuments, icon: FileText, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+    { title: 'Recent Activity', value: loading ? '...' : stats.recentActivity, icon: Activity, color: 'text-green-400', bg: 'bg-green-500/10' },
   ];
 
   return (
@@ -19,7 +49,7 @@ export const DashboardOverview = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => {
+        {displayStats.map((stat, i) => {
           const Icon = stat.icon;
           return (
             <div 

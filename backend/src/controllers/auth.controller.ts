@@ -43,16 +43,19 @@ export const signup = async (req: Request, res: Response) => {
   try {
     const { name, email, password, layoutId } = req.body;
     
-    if (!name || !email || !password || !layoutId) {
-      return res.status(400).json({ success: false, message: 'Name, email, password, and layoutId are required' });
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
     }
 
-    // 1. Fetch layout to ensure it exists
-    const layoutSnapshot = await db.collection('document_layouts').doc(layoutId).get();
-    if (!layoutSnapshot.exists) {
-      return res.status(400).json({ success: false, message: 'Invalid layout selected' });
+    // 1. Fetch layout to ensure it exists if provided
+    let layout = null;
+    if (layoutId) {
+      const layoutSnapshot = await db.collection('document_layouts').doc(layoutId).get();
+      if (!layoutSnapshot.exists) {
+        return res.status(400).json({ success: false, message: 'Invalid layout selected' });
+      }
+      layout = layoutSnapshot.data();
     }
-    const layout = layoutSnapshot.data();
 
     // 2. Create user in Firebase Auth
     const userRecord = await auth.createUser({
