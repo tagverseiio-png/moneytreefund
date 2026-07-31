@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2 } from 'lucide-react';
+import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2, Plus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Client {
@@ -24,6 +24,13 @@ interface Layout {
   name: string;
 }
 
+interface DocumentRequest {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+}
+
 export const Clients = () => {
   const { role } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
@@ -39,21 +46,24 @@ export const Clients = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Modal state for requesting documents
-  const [requestModalClient, setRequestModalClient] = useState<Client | null>(null);
-  const [reqTitle, setReqTitle] = useState('');
-  const [reqDesc, setReqDesc] = useState('');
-  const [requesting, setRequesting] = useState(false);
-
   // Modal state for changing password
   const [passwordModalClient, setPasswordModalClient] = useState<Client | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [settingPassword, setSettingPassword] = useState(false);
 
-  // Modal state for changing layout
-  const [layoutModalClient, setLayoutModalClient] = useState<Client | null>(null);
+  // Modal state for Profile Settings (Layout + Docs)
+  const [profileModalClient, setProfileModalClient] = useState<Client | null>(null);
+  const [clientRequests, setClientRequests] = useState<DocumentRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  
+  // Layout change state
   const [newLayoutId, setNewLayoutId] = useState('');
   const [settingLayout, setSettingLayout] = useState(false);
+
+  // New Doc Request state
+  const [reqTitle, setReqTitle] = useState('');
+  const [reqDesc, setReqDesc] = useState('');
+  const [requesting, setRequesting] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -61,7 +71,7 @@ export const Clients = () => {
       const [clientsRes, resetsRes, layoutsRes] = await Promise.all([
         api.get('/clients'),
         role === 'Admin' ? api.get('/clients/password-resets') : Promise.resolve({ data: { success: true, data: [] } }),
-        api.get('/settings/layouts/public') // Admin can read it here too, public is fine
+        api.get('/settings/layouts/public')
       ]);
       if (clientsRes.data.success) {
         setClients(clientsRes.data.data);
@@ -118,28 +128,6 @@ export const Clients = () => {
     }
   };
 
-  const handleCreateRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!requestModalClient || !reqTitle) return;
-
-    try {
-      setRequesting(true);
-      await api.post(`/clients/${requestModalClient.id}/requests`, {
-        title: reqTitle,
-        description: reqDesc
-      });
-      alert('Document request sent successfully.');
-      setRequestModalClient(null);
-      setReqTitle('');
-      setReqDesc('');
-    } catch (error) {
-      console.error('Request failed:', error);
-      alert('Failed to send document request.');
-    } finally {
-      setRequesting(false);
-    }
-  };
-
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordModalClient || !newPassword) return;
@@ -165,19 +153,43 @@ export const Clients = () => {
     }
   };
 
+  // --- Profile Settings Methods ---
+
+  const fetchClientRequests = async (clientId: string) => {
+    try {
+      setLoadingRequests(true);
+      const res = await api.get(`/clients/${clientId}/requests`);
+      if (res.data.success) {
+        setClientRequests(res.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch requests', error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const openProfileModal = (client: Client) => {
+    setProfileModalClient(client);
+    setNewLayoutId(client.layoutId || '');
+    setReqTitle('');
+    setReqDesc('');
+    fetchClientRequests(client.id);
+  };
+
   const handleChangeLayout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!layoutModalClient || !newLayoutId) return;
+    if (!profileModalClient || !newLayoutId) return;
 
     try {
       setSettingLayout(true);
-      await api.put(`/clients/${layoutModalClient.id}/layout`, {
+      await api.put(`/clients/${profileModalClient.id}/layout`, {
         layoutId: newLayoutId
       });
-      alert('Profile Layout updated successfully. Note: Document requests are NOT automatically re-generated when changing manually.');
-      setLayoutModalClient(null);
-      setNewLayoutId('');
-      fetchData();
+      // Update local state without closing modal
+      setProfileModalClient({ ...profileModalClient, layoutId: newLayoutId });
+      fetchData(); // Refresh background data
+      alert('Profile Layout updated successfully. Note: This does not automatically re-generate new document requests.');
     } catch (error) {
       console.error('Layout update failed:', error);
       alert('Failed to update profile layout.');
@@ -186,9 +198,26 @@ export const Clients = () => {
     }
   };
 
-  const openLayoutModal = (client: Client) => {
-    setLayoutModalClient(client);
-    setNewLayoutId(client.layoutId || (layouts.length > 0 ? layouts[0].id : ''));
+  const handleCreateRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileModalClient || !reqTitle) return;
+
+    try {
+      setRequesting(true);
+      await api.post(`/clients/${profileModalClient.id}/requests`, {
+        title: reqTitle,
+        description: reqDesc
+      });
+      // Refresh requests without closing modal
+      await fetchClientRequests(profileModalClient.id);
+      setReqTitle('');
+      setReqDesc('');
+    } catch (error) {
+      console.error('Request failed:', error);
+      alert('Failed to send document request.');
+    } finally {
+      setRequesting(false);
+    }
   };
 
   const getLayoutName = (id?: string) => {
@@ -328,15 +357,15 @@ export const Clients = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-400">{new Date(client.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
+                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                       {role === 'Admin' && (
                         <>
                           <button 
-                            onClick={() => openLayoutModal(client)}
-                            className="px-3 py-1.5 bg-gray-500/10 text-gray-300 hover:bg-gray-500/20 rounded text-sm transition-colors border border-gray-500/30"
-                            title="Change Profile Layout"
+                            onClick={() => openProfileModal(client)}
+                            className="px-3 py-1.5 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded text-sm transition-colors border border-[#D4AF37]/30"
+                            title="Manage Profile"
                           >
-                            <Settings2 size={16} className="inline mr-1" /> Layout
+                            <Settings2 size={16} className="inline mr-1" /> Profile Settings
                           </button>
                           <button 
                             onClick={() => setPasswordModalClient(client)}
@@ -344,13 +373,6 @@ export const Clients = () => {
                             title="Change Password"
                           >
                             <Key size={16} className="inline mr-1" /> Password
-                          </button>
-                          <button 
-                            onClick={() => setRequestModalClient(client)}
-                            className="px-3 py-1.5 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 rounded text-sm transition-colors border border-[#D4AF37]/30"
-                            title="Request Document"
-                          >
-                            <FileText size={16} className="inline mr-1" /> Request Doc
                           </button>
                           {client.status !== 'Active' && (
                             <button 
@@ -372,106 +394,140 @@ export const Clients = () => {
         )}
       </div>
 
-      {/* Change Layout Modal */}
-      {layoutModalClient && (
+      {/* User Profile Settings Modal */}
+      {profileModalClient && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#051a10] border border-white/10 p-6 rounded-lg shadow-2xl max-w-md w-full relative">
+          <div className="bg-[#051a10] border border-white/10 p-8 rounded-lg shadow-2xl max-w-4xl w-full relative max-h-[90vh] overflow-y-auto">
             <button 
-              onClick={() => setLayoutModalClient(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              onClick={() => setProfileModalClient(null)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
-            <h3 className="text-xl font-light text-white mb-2">Change Profile Layout</h3>
-            <p className="text-gray-400 text-sm mb-6">Update the onboarding profile for <span className="text-[#D4AF37]">{layoutModalClient.name}</span>.</p>
             
-            <form onSubmit={handleChangeLayout} className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-300 mb-1">Select Layout</label>
-                <select
-                  value={newLayoutId}
-                  onChange={(e) => setNewLayoutId(e.target.value)}
-                  required
-                  className="w-full bg-[#03120B] border border-white/10 rounded-md px-4 py-2 text-white focus:outline-none focus:border-[#D4AF37]"
-                >
-                  <option value="" disabled>Select a Layout</option>
-                  {layouts.map(layout => (
-                    <option key={layout.id} value={layout.id}>{layout.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setLayoutModalClient(null)}
-                  className="px-4 py-2 text-gray-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={settingLayout || !newLayoutId}
-                  className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-md hover:bg-[#FDFBF7] transition-all disabled:opacity-50"
-                >
-                  {settingLayout ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="mb-8 pr-12">
+              <h3 className="text-2xl font-light text-white mb-1">User Profile Settings</h3>
+              <p className="text-gray-400">Manage settings and required documents for <span className="text-[#D4AF37] font-medium">{profileModalClient.name}</span></p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column: User Data & Layout */}
+              <div className="space-y-6">
+                <div className="bg-[#03120B] p-6 rounded-lg border border-white/5 space-y-4">
+                  <h4 className="text-[#D4AF37] text-sm uppercase tracking-wider font-medium mb-4 flex items-center gap-2">
+                    <User size={16} /> User Information
+                  </h4>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={profileModalClient.name}
+                      className="w-full bg-black/20 border border-white/5 rounded-md px-4 py-2 text-gray-300 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      disabled
+                      value={profileModalClient.email}
+                      className="w-full bg-black/20 border border-white/5 rounded-md px-4 py-2 text-gray-300 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
 
-      {/* Document Request Modal */}
-      {requestModalClient && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#051a10] border border-white/10 p-6 rounded-lg shadow-2xl max-w-md w-full relative">
-            <button 
-              onClick={() => setRequestModalClient(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X size={20} />
-            </button>
-            <h3 className="text-xl font-light text-white mb-2">Request Document</h3>
-            <p className="text-gray-400 text-sm mb-6">Ask <span className="text-[#D4AF37]">{requestModalClient.name}</span> to upload a specific document.</p>
-            
-            <form onSubmit={handleCreateRequest} className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-300 mb-1">Document Title (Required)</label>
-                <input
-                  type="text"
-                  required
-                  value={reqTitle}
-                  onChange={(e) => setReqTitle(e.target.value)}
-                  className="w-full bg-[#03120B] border border-white/10 rounded-md px-4 py-2 text-gray-200 focus:outline-none focus:border-[#D4AF37]"
-                  placeholder="e.g., Passport Copy"
-                />
+                <div className="bg-[#03120B] p-6 rounded-lg border border-white/5">
+                  <h4 className="text-[#D4AF37] text-sm uppercase tracking-wider font-medium mb-4 flex items-center gap-2">
+                    <Settings2 size={16} /> Profile Layout
+                  </h4>
+                  <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                    Changing this dictates which template they fall under. It will not automatically generate or delete existing document requests.
+                  </p>
+                  <form onSubmit={handleChangeLayout} className="flex gap-3">
+                    <select
+                      value={newLayoutId}
+                      onChange={(e) => setNewLayoutId(e.target.value)}
+                      required
+                      className="flex-1 bg-black/20 border border-white/10 rounded-md px-4 py-2 text-white focus:outline-none focus:border-[#D4AF37]"
+                    >
+                      <option value="" disabled>Select a Layout</option>
+                      {layouts.map(layout => (
+                        <option key={layout.id} value={layout.id}>{layout.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="submit"
+                      disabled={settingLayout || !newLayoutId || newLayoutId === profileModalClient.layoutId}
+                      className="px-4 py-2 bg-[#D4AF37] text-black font-medium rounded-md hover:bg-[#FDFBF7] transition-all disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {settingLayout ? 'Saving...' : 'Update'}
+                    </button>
+                  </form>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm text-gray-300 mb-1">Instructions (Optional)</label>
-                <textarea
-                  value={reqDesc}
-                  onChange={(e) => setReqDesc(e.target.value)}
-                  className="w-full bg-[#03120B] border border-white/10 rounded-md px-4 py-2 text-gray-200 focus:outline-none focus:border-[#D4AF37] min-h-[100px]"
-                  placeholder="Please upload a color copy of your passport..."
-                />
+
+              {/* Right Column: Document Requirements */}
+              <div className="bg-[#03120B] p-6 rounded-lg border border-white/5 flex flex-col h-full max-h-[500px]">
+                <h4 className="text-[#D4AF37] text-sm uppercase tracking-wider font-medium mb-4 flex items-center gap-2">
+                  <FileText size={16} /> Document Requirements
+                </h4>
+                
+                <div className="flex-1 space-y-3 mb-6 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+                  {loadingRequests ? (
+                    <div className="text-gray-500 text-sm italic text-center py-4">Loading requirements...</div>
+                  ) : clientRequests.length === 0 ? (
+                    <div className="text-gray-500 text-sm italic text-center py-4">No document requirements assigned.</div>
+                  ) : (
+                    clientRequests.map(req => (
+                      <div key={req.id} className="bg-black/20 border border-white/5 p-3 rounded-md flex justify-between items-center hover:border-white/10 transition-colors">
+                        <div>
+                          <div className="text-gray-200 font-medium text-sm">{req.title}</div>
+                          {req.description && <div className="text-gray-500 text-xs mt-0.5">{req.description}</div>}
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full border whitespace-nowrap ml-3 ${
+                          req.status === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                          req.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                          'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                        }`}>
+                          {req.status}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="border-t border-white/5 pt-6 mt-auto">
+                  <h5 className="text-gray-300 text-sm font-medium mb-3">Add Custom Requirement</h5>
+                  <form onSubmit={handleCreateRequest} className="space-y-3">
+                    <input
+                      type="text"
+                      required
+                      value={reqTitle}
+                      onChange={(e) => setReqTitle(e.target.value)}
+                      className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-[#D4AF37]"
+                      placeholder="Document Title (e.g., Aadhar Card)"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={reqDesc}
+                        onChange={(e) => setReqDesc(e.target.value)}
+                        className="flex-1 bg-black/20 border border-white/10 rounded-md px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-[#D4AF37]"
+                        placeholder="Instructions (Optional)"
+                      />
+                      <button
+                        type="submit"
+                        disabled={requesting || !reqTitle}
+                        className="px-4 py-2 bg-white/10 text-white font-medium rounded-md hover:bg-white/20 transition-all disabled:opacity-50 flex items-center gap-1 text-sm whitespace-nowrap"
+                      >
+                        <Plus size={16} /> Add
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setRequestModalClient(null)}
-                  className="px-4 py-2 text-gray-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={requesting || !reqTitle}
-                  className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-md hover:bg-[#FDFBF7] transition-all disabled:opacity-50"
-                >
-                  {requesting ? 'Sending...' : 'Send Request'}
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
