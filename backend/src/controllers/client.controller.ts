@@ -68,7 +68,7 @@ export const approveClient = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     
-    if (req.user?.role !== 'Admin') {
+    if (req.userRole !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
@@ -87,16 +87,16 @@ export const getClientRequests = async (req: Request, res: Response) => {
     const id = req.params.id as string;
     
     // Admin can see any, Client can only see their own
-    if (req.user?.role !== 'Admin' && req.user?.uid !== id) {
+    if (req.userRole !== 'Admin' && req.user?.uid !== id) {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
     const snapshot = await db.collection('document_requests')
       .where('clientId', '==', id)
-      .orderBy('createdAt', 'desc')
       .get();
       
-    const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    requests = requests.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return res.status(200).json({ success: true, data: requests });
   } catch (error) {
@@ -110,7 +110,7 @@ export const createDocumentRequest = async (req: Request, res: Response) => {
     const id = req.params.id as string;
     const { title, description, type } = req.body;
 
-    if (req.user?.role !== 'Admin') {
+    if (req.userRole !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
@@ -123,7 +123,7 @@ export const createDocumentRequest = async (req: Request, res: Response) => {
       type: type || 'file',
       status: 'Pending',
       createdAt: new Date().toISOString(),
-      createdBy: req.user.uid
+      createdBy: req.user?.uid || 'system'
     };
 
     await reqRef.set(reqData);
@@ -146,7 +146,7 @@ export const submitTextResponse = async (req: Request, res: Response) => {
     }
 
     // Client can only submit their own, Admin can submit for anyone (rare, but possible)
-    if (req.user?.role !== 'Admin' && req.user?.uid !== id) {
+    if (req.userRole !== 'Admin' && req.user?.uid !== id) {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
@@ -176,16 +176,16 @@ export const submitTextResponse = async (req: Request, res: Response) => {
 
 export const getPasswordResets = async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'Admin') {
+    if (req.userRole !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
     const snapshot = await db.collection('password_reset_requests')
       .where('status', '==', 'Pending')
-      .orderBy('createdAt', 'desc')
       .get();
 
-    const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    requests = requests.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return res.status(200).json({ success: true, data: requests });
   } catch (error) {
@@ -199,7 +199,7 @@ export const changePassword = async (req: Request, res: Response) => {
     const id = req.params.id as string;
     const { password } = req.body;
 
-    if (req.user?.role !== 'Admin') {
+    if (req.userRole !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
@@ -238,7 +238,7 @@ export const updateClientLayout = async (req: Request, res: Response) => {
     const id = req.params.id as string;
     const { layoutId } = req.body;
 
-    if (req.user?.role !== 'Admin') {
+    if (req.userRole !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 

@@ -3,10 +3,6 @@ import { db } from '../firebase/admin';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    if (req.user?.role !== 'Admin' && req.user?.role !== 'Super Admin' && req.user?.role !== 'Administrator') {
-       return res.status(403).json({ success: false, message: 'Forbidden' });
-    }
-
     const clientsSnapshot = await db.collection('clients').get();
     const documentRequestsSnapshot = await db.collection('document_requests').where('status', '==', 'Pending').get();
 

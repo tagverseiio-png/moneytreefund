@@ -22,6 +22,11 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
   try {
     const decodedClaims = await auth.verifySessionCookie(sessionCookie, true /** checkRevoked */);
     req.user = decodedClaims;
+
+    // Fetch user role from Firestore and attach to request
+    const userDoc = await db.collection('users').doc(decodedClaims.uid).get();
+    req.userRole = userDoc.exists ? userDoc.data()?.role : 'Client';
+    
     next();
   } catch (error) {
     console.error('Error verifying Firebase session cookie:', error);
@@ -36,15 +41,10 @@ export const requireRole = (allowedRoles: string[]) => {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
       }
 
-      // Fetch user role from Firestore
-      const userDoc = await db.collection('users').doc(req.user.uid).get();
-      const role = userDoc.exists ? userDoc.data()?.role : 'Client';
-
-      if (!allowedRoles.includes(role)) {
+      if (!req.userRole || !allowedRoles.includes(req.userRole)) {
         return res.status(403).json({ success: false, message: 'Forbidden: Insufficient permissions' });
       }
 
-      req.userRole = role;
       next();
     } catch (error) {
       return res.status(500).json({ success: false, message: 'Internal Server Error' });
