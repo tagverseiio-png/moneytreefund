@@ -68,23 +68,6 @@ export const DashboardOverview = () => {
         })}
       </div>
 
-      {/* Placeholder for future charts or activity feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up animate-delay-300">
-        <div className="lg:col-span-2 glass-panel p-8 rounded-3xl h-80 flex flex-col justify-center items-center text-center">
-           <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <Activity size={24} className="text-gray-600" />
-           </div>
-           <h3 className="text-xl font-medium text-gray-400 mb-2">Activity Overview</h3>
-           <p className="text-gray-600">Chart data will populate as activity increases.</p>
-        </div>
-        <div className="glass-panel p-8 rounded-3xl h-80 flex flex-col justify-center items-center text-center">
-           <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <FileText size={24} className="text-gray-600" />
-           </div>
-           <h3 className="text-xl font-medium text-gray-400 mb-2">Recent Documents</h3>
-           <p className="text-gray-600">No new documents uploaded today.</p>
-        </div>
-      </div>
     </div>
   );
 };
