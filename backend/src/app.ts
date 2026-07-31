@@ -6,6 +6,9 @@ import cookieParser from 'cookie-parser';
 
 const app = express();
 
+// Trust reverse proxy (e.g., Nginx) so rate limiting works correctly with X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet());
 const corsOrigin = process.env.CORS_ORIGIN || true;
