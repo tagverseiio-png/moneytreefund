@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface RequiredDoc {
   title: string;
   description: string;
+  type: 'file' | 'text';
 }
 
 interface DocumentLayout {
@@ -20,7 +21,7 @@ export const Settings = () => {
   const [loading, setLoading] = useState(true);
 
   const [formName, setFormName] = useState('');
-  const [formDocs, setFormDocs] = useState<RequiredDoc[]>([{ title: '', description: '' }]);
+  const [formDocs, setFormDocs] = useState<RequiredDoc[]>([{ title: '', description: '', type: 'file' }]);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -49,7 +50,7 @@ export const Settings = () => {
   };
 
   const addDocField = () => {
-    setFormDocs([...formDocs, { title: '', description: '' }]);
+    setFormDocs([...formDocs, { title: '', description: '', type: 'file' }]);
   };
 
   const removeDocField = (index: number) => {
@@ -59,14 +60,18 @@ export const Settings = () => {
 
   const resetForm = () => {
     setFormName('');
-    setFormDocs([{ title: '', description: '' }]);
+    setFormDocs([{ title: '', description: '', type: 'file' }]);
     setEditingId(null);
   };
 
   const handleEdit = (layout: DocumentLayout) => {
     setEditingId(layout.id);
     setFormName(layout.name);
-    setFormDocs(layout.requiredDocs.length > 0 ? [...layout.requiredDocs] : [{ title: '', description: '' }]);
+    // Map over existing docs to ensure type exists (for backwards compatibility)
+    const existingDocs = layout.requiredDocs.length > 0 
+      ? layout.requiredDocs.map(doc => ({ ...doc, type: doc.type || 'file' }))
+      : [{ title: '', description: '', type: 'file' as const }];
+    setFormDocs(existingDocs);
   };
 
   const handleDelete = async (id: string) => {
@@ -159,13 +164,23 @@ export const Settings = () => {
                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white input-glow transition-all"
                         placeholder="Document Title (e.g. Identity Proof)"
                       />
-                      <input
-                        type="text"
-                        value={doc.description}
-                        onChange={e => handleDocChange(idx, 'description', e.target.value)}
-                        className="w-full bg-black/40 border border-transparent rounded-xl px-4 py-2.5 text-sm text-gray-400 input-glow transition-all"
-                        placeholder="Instructions (Optional)"
-                      />
+                      <div className="flex gap-3">
+                        <select
+                          value={doc.type || 'file'}
+                          onChange={e => handleDocChange(idx, 'type', e.target.value)}
+                          className="w-1/3 bg-black/40 border border-transparent rounded-xl px-4 py-2.5 text-sm text-gray-300 input-glow transition-all"
+                        >
+                          <option value="file">File Upload</option>
+                          <option value="text">Text Input</option>
+                        </select>
+                        <input
+                          type="text"
+                          value={doc.description}
+                          onChange={e => handleDocChange(idx, 'description', e.target.value)}
+                          className="w-2/3 bg-black/40 border border-transparent rounded-xl px-4 py-2.5 text-sm text-gray-400 input-glow transition-all"
+                          placeholder="Instructions (Optional)"
+                        />
+                      </div>
                     </div>
                     {formDocs.length > 1 && (
                       <button type="button" onClick={() => removeDocField(idx)} className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-colors mt-1">
@@ -237,7 +252,12 @@ export const Settings = () => {
                                <FileText size={12} className="text-[#D4AF37]" />
                             </div>
                             <div>
-                              <span className="font-medium text-gray-200 block">{doc.title}</span>
+                              <span className="font-medium text-gray-200 block">
+                                {doc.title}
+                                <span className="ml-2 text-[10px] uppercase tracking-wider text-[#D4AF37] border border-[#D4AF37]/30 px-1.5 py-0.5 rounded">
+                                  {doc.type === 'text' ? 'TEXT' : 'FILE'}
+                                </span>
+                              </span>
                               {doc.description && <span className="text-xs text-gray-500 mt-0.5 block">{doc.description}</span>}
                             </div>
                           </div>

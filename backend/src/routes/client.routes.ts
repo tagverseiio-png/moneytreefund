@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createClient, getClients, approveClient, getClientRequests, createDocumentRequest, getPasswordResets, changePassword, updateClientLayout } from '../controllers/client.controller';
+import { createClient, getClients, approveClient, getClientRequests, createDocumentRequest, getPasswordResets, changePassword, updateClientLayout, submitTextResponse } from '../controllers/client.controller';
 import { verifyToken, requireRole } from '../middleware/auth';
 
 const router = Router();
@@ -25,5 +25,6 @@ router.put('/:id/password', verifyToken, requireRole(['Admin', 'Super Admin', 'A
 // Document requests
 router.get('/:id/requests', verifyToken, getClientRequests);
 router.post('/:id/requests', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), createDocumentRequest);
+router.put('/:id/requests/:requestId/text', verifyToken, submitTextResponse);
 
 export default router;

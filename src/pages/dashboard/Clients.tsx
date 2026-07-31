@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { UserPlus, Mail, User, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2, Plus, ArrowRight } from 'lucide-react';
+import { UserPlus, Mail, User, Users, ShieldCheck, CheckCircle2, FileText, X, Key, AlertTriangle, Settings2, Plus, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Client {
@@ -29,6 +29,8 @@ interface DocumentRequest {
   title: string;
   description: string;
   status: string;
+  type?: 'file' | 'text';
+  textResponse?: string;
 }
 
 export const Clients = () => {
@@ -59,6 +61,7 @@ export const Clients = () => {
 
   const [reqTitle, setReqTitle] = useState('');
   const [reqDesc, setReqDesc] = useState('');
+  const [reqType, setReqType] = useState('file');
   const [requesting, setRequesting] = useState(false);
 
   const fetchData = async () => {
@@ -136,7 +139,7 @@ export const Clients = () => {
   const openProfileModal = (client: Client) => {
     setProfileModalClient(client);
     setNewLayoutId(client.layoutId || '');
-    setReqTitle(''); setReqDesc('');
+    setReqTitle(''); setReqDesc(''); setReqType('file');
     fetchClientRequests(client.id);
   };
 
@@ -160,9 +163,9 @@ export const Clients = () => {
     if (!profileModalClient || !reqTitle) return;
     try {
       setRequesting(true);
-      await api.post(`/clients/${profileModalClient.id}/requests`, { title: reqTitle, description: reqDesc });
+      await api.post(`/clients/${profileModalClient.id}/requests`, { title: reqTitle, description: reqDesc, type: reqType });
       await fetchClientRequests(profileModalClient.id);
-      setReqTitle(''); setReqDesc('');
+      setReqTitle(''); setReqDesc(''); setReqType('file');
     } catch (error) {
       alert('Failed to send document request.');
     } finally {
@@ -391,12 +394,25 @@ export const Clients = () => {
                     <div className="text-gray-500 text-sm text-center py-10 bg-white/5 rounded-xl border border-white/5 border-dashed">No documents assigned yet.</div>
                   ) : (
                     clientRequests.map(req => (
-                      <div key={req.id} className="bg-white/5 hover:bg-white/10 border border-white/5 p-4 rounded-xl flex justify-between items-center transition-colors">
-                        <div>
-                          <div className="text-gray-200 font-medium">{req.title}</div>
+                      <div key={req.id} className="bg-white/5 hover:bg-white/10 border border-white/5 p-4 rounded-xl flex justify-between items-start transition-colors">
+                        <div className="flex-1 pr-4">
+                          <div className="text-gray-200 font-medium flex items-center gap-2">
+                            {req.title}
+                            <span className="text-[10px] uppercase tracking-wider text-[#D4AF37] border border-[#D4AF37]/30 px-1.5 py-0.5 rounded">
+                              {req.type === 'text' ? 'TEXT' : 'FILE'}
+                            </span>
+                          </div>
                           {req.description && <div className="text-gray-500 text-xs mt-1">{req.description}</div>}
+                          
+                          {/* If text type and fulfilled, show the response */}
+                          {req.type === 'text' && req.status === 'Fulfilled' && req.textResponse && (
+                            <div className="mt-3 bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-gray-300">
+                              <span className="block text-xs text-gray-500 uppercase tracking-widest mb-1">Response:</span>
+                              {req.textResponse}
+                            </div>
+                          )}
                         </div>
-                        <span className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap ml-4 ${
+                        <span className={`text-xs px-3 py-1 rounded-full border whitespace-nowrap mt-0.5 shrink-0 ${
                           req.status === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/30' :
                           req.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
                           'bg-gray-500/10 text-gray-400 border-gray-500/30'
@@ -412,7 +428,11 @@ export const Clients = () => {
                   <form onSubmit={handleCreateRequest} className="space-y-3">
                     <input type="text" required value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} className="w-full bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all" placeholder="New Document Title (e.g. Identity Proof)" />
                     <div className="flex gap-2">
-                      <input type="text" value={reqDesc} onChange={(e) => setReqDesc(e.target.value)} className="flex-1 bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all" placeholder="Instructions (Optional)" />
+                      <select value={reqType} onChange={(e) => setReqType(e.target.value)} className="w-1/3 bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-[#D4AF37] transition-all appearance-none">
+                        <option value="file">File Upload</option>
+                        <option value="text">Text Input</option>
+                      </select>
+                      <input type="text" value={reqDesc} onChange={(e) => setReqDesc(e.target.value)} className="w-2/3 bg-[#0A2A1B] border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all" placeholder="Instructions (Optional)" />
                       <button type="submit" disabled={requesting || !reqTitle} className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-all disabled:opacity-50 flex items-center justify-center">
                         <ArrowRight size={18} />
                       </button>

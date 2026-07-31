@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { auth } from '../firebase/admin';
+import { auth, db } from '../firebase/admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 
 // Extend Express Request interface to include the user
@@ -36,12 +36,9 @@ export const requireRole = (allowedRoles: string[]) => {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
       }
 
-      // Fetch user role from custom claims or Firestore (assuming custom claims here for efficiency)
-      // If using Firestore, you'd query the users collection here:
-      // const userDoc = await db.collection('users').doc(req.user.uid).get();
-      // const role = userDoc.data()?.role;
-      
-      const role = (req.user.role as string) || 'Client'; // Default fallback
+      // Fetch user role from Firestore
+      const userDoc = await db.collection('users').doc(req.user.uid).get();
+      const role = userDoc.exists ? userDoc.data()?.role : 'Client';
 
       if (!allowedRoles.includes(role)) {
         return res.status(403).json({ success: false, message: 'Forbidden: Insufficient permissions' });

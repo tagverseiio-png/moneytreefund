@@ -108,7 +108,7 @@ export const getClientRequests = async (req: Request, res: Response) => {
 export const createDocumentRequest = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { title, description } = req.body;
+    const { title, description, type } = req.body;
 
     if (req.user?.role !== 'Admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
@@ -120,6 +120,7 @@ export const createDocumentRequest = async (req: Request, res: Response) => {
       clientId: id,
       title,
       description: description || '',
+      type: type || 'file',
       status: 'Pending',
       createdAt: new Date().toISOString(),
       createdBy: req.user.uid
@@ -130,6 +131,45 @@ export const createDocumentRequest = async (req: Request, res: Response) => {
     return res.status(201).json({ success: true, message: 'Request created', data: reqData });
   } catch (error) {
     console.error('Error creating request:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const submitTextResponse = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const requestId = req.params.requestId as string;
+    const { textResponse } = req.body;
+
+    if (!textResponse) {
+      return res.status(400).json({ success: false, message: 'Text response is required' });
+    }
+
+    // Client can only submit their own, Admin can submit for anyone (rare, but possible)
+    if (req.user?.role !== 'Admin' && req.user?.uid !== id) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const reqRef = db.collection('document_requests').doc(requestId);
+    const reqDoc = await reqRef.get();
+
+    if (!reqDoc.exists || reqDoc.data()?.clientId !== id) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    if (reqDoc.data()?.type !== 'text') {
+      return res.status(400).json({ success: false, message: 'This request requires a file upload, not text' });
+    }
+
+    await reqRef.update({
+      textResponse,
+      status: 'Fulfilled',
+      fulfilledAt: new Date().toISOString()
+    });
+
+    return res.status(200).json({ success: true, message: 'Text response submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting text response:', error);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };

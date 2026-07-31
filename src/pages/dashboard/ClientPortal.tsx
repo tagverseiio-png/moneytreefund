@@ -8,6 +8,8 @@ interface DocumentRequest {
   title: string;
   description: string;
   status: 'Pending' | 'Fulfilled' | 'Approved';
+  type?: 'file' | 'text';
+  textResponse?: string;
   createdAt: string;
 }
 
@@ -17,6 +19,7 @@ export const ClientPortal = () => {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [textInputs, setTextInputs] = useState<Record<string, string>>({});
 
   const fetchProfileAndRequests = async () => {
     try {
@@ -64,6 +67,23 @@ export const ClientPortal = () => {
     } catch (error) {
       console.error('Upload failed:', error);
       alert('Failed to upload document');
+    } finally {
+      setUploadingFor(null);
+    }
+  };
+
+  const handleTextSubmit = async (requestId: string) => {
+    const textResponse = textInputs[requestId];
+    if (!textResponse || !user?.uid) return;
+
+    try {
+      setUploadingFor(requestId);
+      await api.put(`/clients/${user.uid}/requests/${requestId}/text`, { textResponse });
+      alert('Response securely submitted. Our team will review it shortly.');
+      fetchProfileAndRequests();
+    } catch (error) {
+      console.error('Submission failed:', error);
+      alert('Failed to submit response');
     } finally {
       setUploadingFor(null);
     }
@@ -173,19 +193,39 @@ export const ClientPortal = () => {
                     
                     <div className="shrink-0 w-full md:w-auto">
                       {isPending ? (
-                        <label className={`w-full md:w-auto cursor-pointer px-6 py-3 bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-[#FCEBBA] transition-all rounded-xl font-medium text-sm flex items-center justify-center gap-2 group ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
-                          <Upload size={18} className="group-hover:-translate-y-1 transition-transform" />
-                          {uploadingFor === req.id ? 'Uploading to Vault...' : 'Secure Upload'}
-                          <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all" />
-                          <input 
-                            type="file" 
-                            className="hidden" 
-                            onChange={(e) => handleUploadFulfillment(e, req.id)}
-                          />
-                        </label>
+                        req.type === 'text' ? (
+                          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0">
+                            <input
+                              type="text"
+                              value={textInputs[req.id] || ''}
+                              onChange={(e) => setTextInputs({ ...textInputs, [req.id]: e.target.value })}
+                              placeholder="Enter your response..."
+                              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white input-glow transition-all md:w-64"
+                            />
+                            <button
+                              onClick={() => handleTextSubmit(req.id)}
+                              disabled={!textInputs[req.id] || uploadingFor === req.id}
+                              className="px-6 py-3 bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-[#FCEBBA] transition-all rounded-xl font-medium text-sm flex items-center justify-center gap-2 group disabled:opacity-50 disabled:pointer-events-none"
+                            >
+                              {uploadingFor === req.id ? 'Submitting...' : 'Submit'}
+                              <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className={`w-full md:w-auto cursor-pointer px-6 py-3 bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-[#FCEBBA] transition-all rounded-xl font-medium text-sm flex items-center justify-center gap-2 group ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <Upload size={18} className="group-hover:-translate-y-1 transition-transform" />
+                            {uploadingFor === req.id ? 'Uploading to Vault...' : 'Secure Upload'}
+                            <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all" />
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              onChange={(e) => handleUploadFulfillment(e, req.id)}
+                            />
+                          </label>
+                        )
                       ) : (
                         <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed">
-                          <CheckCircle2 size={18} className="text-green-500/50" /> Uploaded
+                          <CheckCircle2 size={18} className="text-green-500/50" /> {req.type === 'text' ? 'Submitted' : 'Uploaded'}
                         </div>
                       )}
                     </div>

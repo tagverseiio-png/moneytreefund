@@ -95,6 +95,7 @@ export const signup = async (req: Request, res: Response) => {
           clientId: uid,
           title: doc.title,
           description: doc.description || '',
+          type: doc.type || 'file',
           status: 'Pending',
           createdAt: new Date().toISOString(),
           createdBy: 'system' // Auto-generated
