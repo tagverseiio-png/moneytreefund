@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Plus, Trash2, Edit2, FileText, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, FileText, CheckCircle2, LayoutTemplate } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface RequiredDoc {
@@ -110,62 +110,65 @@ export const Settings = () => {
   }
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-6xl animate-fade-in-up">
       <div>
-        <h2 className="text-2xl font-light text-white">Platform Settings</h2>
-        <p className="text-gray-400 mt-1">Configure client onboarding profiles and document requirements.</p>
+        <h1 className="text-3xl font-serif text-white tracking-wide">Platform Settings</h1>
+        <p className="text-gray-400 mt-2 font-light text-lg">Design client onboarding profiles and automate document collection.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Create / Edit Form */}
-        <div className="bg-[#051a10] border border-white/5 rounded-lg p-6 h-fit">
-          <h3 className="text-[#D4AF37] font-medium tracking-wide uppercase text-sm mb-6">
+        <div className="glass-panel rounded-3xl p-8 h-fit shadow-2xl relative overflow-hidden border border-white/10">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#D4AF37] to-transparent opacity-50" />
+          
+          <h3 className="text-[#D4AF37] font-medium tracking-widest uppercase text-sm mb-8 flex items-center gap-2">
+            <LayoutTemplate size={16} />
             {editingId ? 'Edit Layout Profile' : 'Create New Layout Profile'}
           </h3>
           
-          <form onSubmit={handleSave} className="space-y-6">
+          <form onSubmit={handleSave} className="space-y-6 relative z-10">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Profile Name (e.g. Individual KYC)</label>
+              <label className="block text-sm text-gray-400 mb-2 font-medium">Profile Name</label>
               <input
                 type="text"
                 required
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
-                className="w-full bg-[#03120B] border border-white/10 rounded-md px-4 py-2 text-gray-200 focus:outline-none focus:border-[#D4AF37]"
-                placeholder="Layout Name"
+                className="w-full bg-[#03120B]/60 border border-white/10 rounded-xl px-4 py-3 text-white input-glow transition-all"
+                placeholder="e.g. Corporate KYC"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2 flex items-center justify-between">
+              <label className="block text-sm text-gray-400 mb-4 flex items-center justify-between font-medium">
                 <span>Required Documents</span>
-                <button type="button" onClick={addDocField} className="text-xs text-[#D4AF37] hover:underline flex items-center gap-1">
-                  <Plus size={12} /> Add Document
+                <button type="button" onClick={addDocField} className="text-xs text-[#D4AF37] hover:bg-[#D4AF37]/10 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 border border-[#D4AF37]/20">
+                  <Plus size={12} /> Add Field
                 </button>
               </label>
               
               <div className="space-y-3">
                 {formDocs.map((doc, idx) => (
-                  <div key={idx} className="flex items-start gap-2 bg-black/20 p-3 rounded border border-white/5">
-                    <div className="flex-1 space-y-2">
+                  <div key={idx} className="flex items-start gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 relative group transition-all hover:bg-white/10">
+                    <div className="flex-1 space-y-3">
                       <input
                         type="text"
                         value={doc.title}
                         onChange={e => handleDocChange(idx, 'title', e.target.value)}
-                        className="w-full bg-[#03120B] border border-white/10 rounded px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-[#D4AF37]"
-                        placeholder="Document Title (e.g. Aadhar Card)"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white input-glow transition-all"
+                        placeholder="Document Title (e.g. Identity Proof)"
                       />
                       <input
                         type="text"
                         value={doc.description}
                         onChange={e => handleDocChange(idx, 'description', e.target.value)}
-                        className="w-full bg-[#03120B] border border-white/10 rounded px-3 py-1.5 text-sm text-gray-400 focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-black/40 border border-transparent rounded-xl px-4 py-2.5 text-sm text-gray-400 input-glow transition-all"
                         placeholder="Instructions (Optional)"
                       />
                     </div>
                     {formDocs.length > 1 && (
-                      <button type="button" onClick={() => removeDocField(idx)} className="p-1.5 text-gray-500 hover:text-red-400 mt-1">
+                      <button type="button" onClick={() => removeDocField(idx)} className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-colors mt-1">
                         <Trash2 size={16} />
                       </button>
                     )}
@@ -174,62 +177,78 @@ export const Settings = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+            <div className="flex justify-end gap-3 pt-6 border-t border-white/5 mt-8">
               {editingId && (
-                <button type="button" onClick={resetForm} className="px-4 py-2 text-gray-400 hover:text-white">
-                  Cancel
+                <button type="button" onClick={resetForm} className="px-5 py-3 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all">
+                  Cancel Edit
                 </button>
               )}
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 bg-[#D4AF37] text-black font-medium rounded-md hover:bg-[#FDFBF7] transition-all disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#FCEBBA] text-black font-semibold rounded-xl hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 flex items-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.3)]"
               >
-                <CheckCircle2 size={16} />
-                {saving ? 'Saving...' : 'Save Profile'}
+                <CheckCircle2 size={18} />
+                {saving ? 'Saving...' : 'Save Profile Template'}
               </button>
             </div>
           </form>
         </div>
 
         {/* List of Layouts */}
-        <div className="bg-[#051a10] border border-white/5 rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/5 bg-black/20">
-            <h3 className="font-medium text-gray-200">Existing Layouts</h3>
+        <div className="glass-panel rounded-3xl overflow-hidden border border-white/10 shadow-xl flex flex-col max-h-[800px]">
+          <div className="px-8 py-6 border-b border-white/5 bg-black/20 shrink-0">
+            <h3 className="font-medium text-gray-200 text-lg">Active Templates</h3>
           </div>
           
-          {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading...</div>
-          ) : layouts.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No layouts defined yet.</div>
-          ) : (
-            <ul className="divide-y divide-white/5">
-              {layouts.map(layout => (
-                <li key={layout.id} className="p-6 hover:bg-white/[0.02] transition-colors">
-                  <div className="flex justify-between items-start mb-3">
-                    <h4 className="text-[#D4AF37] font-medium text-lg">{layout.name}</h4>
-                    <div className="flex gap-2">
-                      <button onClick={() => handleEdit(layout)} className="p-1.5 text-gray-400 hover:text-white rounded bg-white/5">
-                        <Edit2 size={14} />
-                      </button>
-                      <button onClick={() => handleDelete(layout.id)} className="p-1.5 text-gray-400 hover:text-red-400 rounded bg-white/5">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Required Docs:</p>
-                    {layout.requiredDocs.map((doc, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                        <FileText size={14} className="text-gray-500" />
-                        <span>{doc.title}</span>
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {loading ? (
+              <div className="p-12 text-center">
+                <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <span className="text-gray-400">Loading templates...</span>
+              </div>
+            ) : layouts.length === 0 ? (
+              <div className="p-12 text-center text-gray-500">
+                <LayoutTemplate size={48} className="mx-auto text-gray-600 mb-4 opacity-50" />
+                No layouts defined yet.<br/>Create one on the left.
+              </div>
+            ) : (
+              <ul className="divide-y divide-white/5">
+                {layouts.map(layout => (
+                  <li key={layout.id} className="p-8 hover:bg-white/[0.02] transition-colors group">
+                    <div className="flex justify-between items-start mb-6">
+                      <h4 className="text-[#D4AF37] font-medium text-xl tracking-wide">{layout.name}</h4>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => handleEdit(layout)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(layout.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all">
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                    </div>
+                    
+                    <div className="bg-black/30 rounded-2xl p-4 border border-white/5">
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-3 pl-1">Required Documents</p>
+                      <div className="space-y-3">
+                        {layout.requiredDocs.map((doc, i) => (
+                          <div key={i} className="flex items-start gap-3 text-sm text-gray-300">
+                            <div className="mt-0.5 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                               <FileText size={12} className="text-[#D4AF37]" />
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-200 block">{doc.title}</span>
+                              {doc.description && <span className="text-xs text-gray-500 mt-0.5 block">{doc.description}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
 
       </div>

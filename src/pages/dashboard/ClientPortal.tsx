@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle2, FileText, ChevronRight, Check } from 'lucide-react';
 
 interface DocumentRequest {
   id: string;
   title: string;
   description: string;
-  status: 'Pending' | 'Fulfilled';
+  status: 'Pending' | 'Fulfilled' | 'Approved';
   createdAt: string;
 }
 
@@ -50,23 +50,17 @@ export const ClientPortal = () => {
     try {
       setUploadingFor(requestId);
       
-      // 1. Upload Document
       const formData = new FormData();
       formData.append('file', file);
       formData.append('clientId', user.uid);
       
-      // We assume /documents handles the upload securely.
-      // A more robust implementation would update the document request status to Fulfilled on backend.
       await api.post('/documents', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      // For now, refresh lists
-      alert('Document uploaded successfully. Admin will review it.');
-      
-      // In a real implementation we'd do a PUT /requests/:id to mark it Fulfilled.
+      // In a robust implementation, the endpoint above would also update the req status to Fulfilled.
+      alert('Document securely uploaded. Our team will review it shortly.');
       fetchProfileAndRequests();
-      
     } catch (error) {
       console.error('Upload failed:', error);
       alert('Failed to upload document');
@@ -76,70 +70,130 @@ export const ClientPortal = () => {
   };
 
   if (loading) {
-    return <div className="text-gray-400 p-8">Loading your portal...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] animate-pulse">
+        <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-gray-400 font-medium tracking-widest uppercase text-sm">Loading Workspace</p>
+      </div>
+    );
   }
 
-  return (
-    <div className="space-y-6 max-w-4xl">
-      <div>
-        <h2 className="text-2xl font-light text-white">Welcome, {user?.email}</h2>
-        <p className="text-gray-400 mt-1">Manage your account and required documents here.</p>
-      </div>
+  const pendingRequests = requests.filter(r => r.status === 'Pending').length;
+  const totalRequests = requests.length;
+  const progressPercent = totalRequests === 0 ? 100 : Math.round(((totalRequests - pendingRequests) / totalRequests) * 100);
 
-      <div className={`p-6 rounded-lg border ${status === 'Active' ? 'bg-green-900/20 border-green-500/30' : 'bg-[#D4AF37]/10 border-[#D4AF37]/30'}`}>
-        <div className="flex items-start gap-4">
-          {status === 'Active' ? (
-            <CheckCircle2 className="text-green-400 mt-1" size={24} />
-          ) : (
-            <AlertCircle className="text-[#D4AF37] mt-1" size={24} />
-          )}
-          <div>
-            <h3 className={`text-lg font-medium ${status === 'Active' ? 'text-green-400' : 'text-[#D4AF37]'}`}>
-              Account Status: {status}
-            </h3>
-            <p className="text-gray-300 mt-1">
-              {status === 'Active' 
-                ? 'Your account is fully approved. You have full access to the platform.' 
-                : 'Your account is pending administrator approval. Please provide any requested documents below to expedite the process.'}
+  return (
+    <div className="max-w-5xl space-y-10 animate-fade-in-up">
+      <div className="glass-panel p-10 rounded-3xl relative overflow-hidden border border-white/10 shadow-2xl">
+        {/* Background glow specific to banner */}
+        <div className="absolute top-[-50%] right-[-10%] w-[60%] h-[200%] bg-gradient-to-l from-[#D4AF37]/10 to-transparent blur-[80px] pointer-events-none" />
+        
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+          <div className="md:col-span-2">
+            <h2 className="text-4xl font-serif text-white tracking-wide mb-3">
+              Welcome back, <br/>
+              <span className="text-gradient-gold font-medium">{user?.displayName || user?.email?.split('@')[0]}</span>
+            </h2>
+            <p className="text-gray-400 font-light text-lg max-w-lg leading-relaxed">
+              Complete your onboarding process by providing the requested documents below. Your secure vault is ready.
             </p>
+          </div>
+          
+          <div className="bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center shadow-inner">
+            <div className="relative inline-flex items-center justify-center mb-2">
+              <svg className="w-24 h-24 transform -rotate-90">
+                <circle cx="48" cy="48" r="36" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                <circle cx="48" cy="48" r="36" stroke="currentColor" strokeWidth="4" fill="transparent"
+                  strokeDasharray={226.2}
+                  strokeDashoffset={226.2 - (226.2 * progressPercent) / 100}
+                  className="text-[#D4AF37] transition-all duration-1000 ease-out" 
+                />
+              </svg>
+              <span className="absolute text-2xl font-light text-white">{progressPercent}%</span>
+            </div>
+            <p className="text-sm font-medium text-[#D4AF37] uppercase tracking-wider">Profile Setup</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#051a10] border border-white/5 rounded-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/5 bg-black/20">
-          <h3 className="font-medium text-gray-200">Requested Documents</h3>
+      <div className={`glass-panel p-6 rounded-2xl border flex items-start gap-4 transition-all duration-500 ${
+        status === 'Active' ? 'bg-green-500/5 border-green-500/20' : 'bg-yellow-500/5 border-yellow-500/20'
+      }`}>
+        <div className={`mt-0.5 p-2 rounded-full ${status === 'Active' ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
+          {status === 'Active' ? (
+            <CheckCircle2 className="text-green-400" size={24} />
+          ) : (
+            <AlertCircle className="text-yellow-400" size={24} />
+          )}
+        </div>
+        <div>
+          <h3 className={`text-lg font-medium tracking-wide ${status === 'Active' ? 'text-green-400' : 'text-yellow-400'}`}>
+            Account Status: {status}
+          </h3>
+          <p className="text-gray-300 mt-1 leading-relaxed text-sm md:text-base">
+            {status === 'Active' 
+              ? 'Your account is fully approved. You have full access to our premium suite.' 
+              : 'Your account is pending administrator approval. Please provide the required documents below to expedite verification.'}
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-serif text-white tracking-wide flex items-center gap-2">
+            <FileText className="text-[#D4AF37]" size={24} /> Action Items
+          </h3>
         </div>
         
         {requests.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No documents requested at this time.</div>
+          <div className="glass-panel p-12 text-center rounded-3xl border border-white/5 border-dashed">
+            <CheckCircle2 size={48} className="mx-auto text-green-500/50 mb-4" />
+            <h4 className="text-xl font-medium text-gray-200 mb-2">You're all caught up!</h4>
+            <p className="text-gray-500">No documents are currently requested by your administrator.</p>
+          </div>
         ) : (
-          <ul className="divide-y divide-white/5">
-            {requests.map(req => (
-              <li key={req.id} className="p-6 hover:bg-white/[0.02] transition-colors">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <h4 className="font-medium text-gray-200">{req.title}</h4>
-                    <p className="text-sm text-gray-400 mt-1">{req.description}</p>
-                    <div className="mt-2 text-xs px-2 py-1 bg-white/5 rounded w-max text-gray-300">
-                      Status: {req.status}
+          <div className="grid grid-cols-1 gap-4">
+            {requests.map((req, idx) => {
+              const isPending = req.status === 'Pending';
+              return (
+                <div 
+                  key={req.id} 
+                  className={`glass-panel p-6 rounded-2xl border transition-all duration-300 animate-fade-in-up animate-delay-${(idx % 4 + 1) * 100} ${
+                    isPending ? 'border-white/10 hover:border-[#D4AF37]/40 hover:bg-white/[0.04]' : 'border-green-500/20 bg-green-500/[0.02]'
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h4 className="text-lg font-medium text-gray-100">{req.title}</h4>
+                        {!isPending && <span className="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1"><Check size={12}/> Received</span>}
+                      </div>
+                      <p className="text-sm text-gray-400 max-w-2xl">{req.description || 'Please provide a clear, legible copy of this document.'}</p>
+                    </div>
+                    
+                    <div className="shrink-0 w-full md:w-auto">
+                      {isPending ? (
+                        <label className={`w-full md:w-auto cursor-pointer px-6 py-3 bg-gradient-to-r from-[#D4AF37]/10 to-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-[#FCEBBA] transition-all rounded-xl font-medium text-sm flex items-center justify-center gap-2 group ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
+                          <Upload size={18} className="group-hover:-translate-y-1 transition-transform" />
+                          {uploadingFor === req.id ? 'Uploading to Vault...' : 'Secure Upload'}
+                          <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 -ml-2 group-hover:ml-0 transition-all" />
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            onChange={(e) => handleUploadFulfillment(e, req.id)}
+                          />
+                        </label>
+                      ) : (
+                        <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed">
+                          <CheckCircle2 size={18} className="text-green-500/50" /> Uploaded
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div>
-                    <label className={`cursor-pointer px-4 py-2 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 hover:bg-[#D4AF37]/20 transition-all rounded font-medium text-sm flex items-center gap-2 ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
-                      <Upload size={16} />
-                      {uploadingFor === req.id ? 'Uploading...' : 'Upload File'}
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        onChange={(e) => handleUploadFulfillment(e, req.id)}
-                      />
-                    </label>
-                  </div>
                 </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
