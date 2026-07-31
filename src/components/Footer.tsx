@@ -42,7 +42,6 @@ export const Footer = ({ onPageChange }: FooterProps) => {
                 <a href="#services" className="text-[#FDFBF7]/50 hover:text-[#D4AF37] text-[11px] font-bold tracking-widest uppercase transition-colors">Trustee Services</a>
                 <a href="#contact" className="text-[#FDFBF7]/50 hover:text-[#D4AF37] text-[11px] font-bold tracking-widest uppercase transition-colors">Contact</a>
                 <a href="/login" className="text-[#D4AF37]/80 hover:text-[#D4AF37] text-[11px] font-bold tracking-widest uppercase transition-colors mt-2">Client Login</a>
-                <a href="/login" className="text-[#D4AF37]/80 hover:text-[#D4AF37] text-[11px] font-bold tracking-widest uppercase transition-colors">Admin Login</a>
               </nav>
             </div>
             <div className="space-y-8">
