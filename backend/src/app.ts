@@ -3,6 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import clientRoutes from './routes/client.routes';
+import authRoutes from './routes/auth.routes';
+import documentRoutes from './routes/document.routes';
 
 const app = express();
 
@@ -34,11 +37,9 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-import clientRoutes from './routes/client.routes';
-import authRoutes from './routes/auth.routes';
-
 app.use('/api/clients', clientRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
