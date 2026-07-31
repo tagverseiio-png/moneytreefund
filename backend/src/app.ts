@@ -11,7 +11,7 @@ app.set('trust proxy', 1);
 
 // Security Middleware
 app.use(helmet());
-const corsOrigin = process.env.CORS_ORIGIN || true;
+const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true;
 app.use(cors({ origin: corsOrigin, credentials: true }));
 
 // Rate Limiting
