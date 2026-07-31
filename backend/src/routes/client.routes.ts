@@ -1,13 +1,20 @@
 import { Router } from 'express';
-import { createClient, getClients } from '../controllers/client.controller';
+import { createClient, getClients, approveClient, getClientRequests, createDocumentRequest } from '../controllers/client.controller';
 import { verifyToken, requireRole } from '../middleware/auth';
 
 const router = Router();
 
-// Only Super Admin and Administrator can create clients
-router.post('/', verifyToken, requireRole(['Super Admin', 'Administrator']), createClient);
+// Admin can create clients directly
+router.post('/', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), createClient);
 
-// Trust Managers and above can view clients
-router.get('/', verifyToken, requireRole(['Super Admin', 'Administrator', 'Trust Manager', 'Operations']), getClients);
+// View clients
+router.get('/', verifyToken, getClients);
+
+// Approve a client
+router.put('/:id/approve', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), approveClient);
+
+// Document requests
+router.get('/:id/requests', verifyToken, getClientRequests);
+router.post('/:id/requests', verifyToken, requireRole(['Admin', 'Super Admin', 'Administrator']), createDocumentRequest);
 
 export default router;

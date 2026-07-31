@@ -12,11 +12,13 @@ export const getMe = async (req: Request, res: Response) => {
     const userDoc = await db.collection('users').doc(userId).get();
     
     let role = 'Client';
+    let status = 'Pending';
     let userData = {};
 
     if (userDoc.exists) {
       const data = userDoc.data();
       role = data?.role || 'Client';
+      status = data?.status || 'Pending';
       userData = data || {};
     }
 
@@ -26,13 +28,62 @@ export const getMe = async (req: Request, res: Response) => {
       data: {
         uid: userId,
         email: req.user.email,
-        role: role,
+        role,
+        status,
         ...userData
       }
     });
   } catch (error) {
     console.error('Error fetching user info:', error);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const signup = async (req: Request, res: Response) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+    }
+
+    // 1. Create user in Firebase Auth
+    const userRecord = await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+
+    const uid = userRecord.uid;
+
+    // 2. Set user role and Pending status in `users` collection
+    await db.collection('users').doc(uid).set({
+      email,
+      name,
+      role: 'Client',
+      status: 'Pending',
+      createdAt: new Date().toISOString()
+    });
+
+    // 3. Set client metadata in `clients` collection
+    const clientData = {
+      name,
+      email,
+      id: uid,
+      status: 'Pending',
+      createdAt: new Date().toISOString(),
+      createdBy: 'self-signup'
+    };
+
+    await db.collection('clients').doc(uid).set(clientData);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Signup successful. Account is pending approval.'
+    });
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    return res.status(400).json({ success: false, message: error.message || 'Failed to sign up' });
   }
 };
 
@@ -66,7 +117,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie('session', sessionCookie, {
       maxAge: expiresIn,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'none'
     });
 
