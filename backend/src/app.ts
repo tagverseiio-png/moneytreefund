@@ -16,8 +16,27 @@ app.set('trust proxy', 1);
 
 // Security Middleware
 app.use(helmet());
-const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true;
-app.use(cors({ origin: corsOrigin, credentials: true }));
+// CORS Configuration - always allow production domains + any extra from env
+const allowedOrigins = new Set([
+  'https://www.moneytreefundtrustee.com',
+  'https://moneytreefundtrustee.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]);
+if (process.env.CORS_ORIGIN) {
+  process.env.CORS_ORIGIN.split(',').forEach(o => allowedOrigins.add(o.trim()));
+}
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, mobile apps, same-origin)
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
+  credentials: true,
+}));
 
 // Rate Limiting
 const limiter = rateLimit({
