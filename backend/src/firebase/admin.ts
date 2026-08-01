@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config(); // Ensure env vars are loaded before Firebase init
+
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
