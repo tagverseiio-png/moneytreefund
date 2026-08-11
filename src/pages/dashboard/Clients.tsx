@@ -73,6 +73,9 @@ export const Clients = () => {
   const [requesting, setRequesting] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
 
+  const [adminTextInputs, setAdminTextInputs] = useState<Record<string, string>>({});
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -204,6 +207,25 @@ export const Clients = () => {
       toast.error('Failed to send document request.');
     } finally {
       setRequesting(false);
+    }
+  };
+
+  const handleAdminTextSubmit = async (requestId: string, clientId: string) => {
+    // Determine the value to submit (either from active input state, or empty string if cleared)
+    const textResponse = adminTextInputs[requestId] !== undefined ? adminTextInputs[requestId] : '';
+    if (!textResponse.trim()) return;
+    
+    try {
+      setUploadingFor(requestId);
+      await api.put(`/clients/${clientId}/requests/${requestId}/text`, { textResponse });
+      toast.success('Profile data saved successfully.');
+      setEditingTextId(null);
+      fetchClientRequests(clientId);
+    } catch (error) {
+      console.error('Failed to save profile data', error);
+      toast.error('Failed to save profile data.');
+    } finally {
+      setUploadingFor(null);
     }
   };
 
@@ -536,20 +558,49 @@ export const Clients = () => {
                     ) : clientRequests.filter(r => r.type === 'text').length === 0 ? (
                       <div className="text-gray-500 text-sm text-center py-4 bg-white/5 rounded-xl border border-white/5 border-dashed">No profile data requested.</div>
                     ) : (
-                      clientRequests.filter(r => r.type === 'text').map(req => (
-                        <div key={req.id} className="bg-white/5 border border-white/5 p-3 rounded-xl flex justify-between items-start">
-                          <div className="flex-1 pr-4">
+                      clientRequests.filter(r => r.type === 'text').map(req => {
+                        const isEditing = editingTextId === req.id || req.status !== 'Fulfilled';
+                        const currentValue = adminTextInputs[req.id] !== undefined ? adminTextInputs[req.id] : (req.textResponse || '');
+                        
+                        return (
+                        <div key={req.id} className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col gap-2">
+                          <div className="flex justify-between items-center">
                             <div className="text-gray-300 text-sm font-medium">{req.title}</div>
-                            {req.status === 'Fulfilled' ? (
-                              <div className="mt-1 text-white text-sm bg-black/40 px-3 py-2 rounded-lg border border-white/10">
-                                {req.textResponse}
-                              </div>
-                            ) : (
-                              <div className="mt-1 text-gray-500 text-xs italic">Pending client response...</div>
+                            {req.status === 'Fulfilled' && !isEditing && (
+                              <button onClick={() => {
+                                setEditingTextId(req.id);
+                                setAdminTextInputs(prev => ({ ...prev, [req.id]: req.textResponse || '' }));
+                              }} className="text-xs text-[#D4AF37] hover:underline px-2 py-1 rounded bg-[#D4AF37]/10">Edit</button>
                             )}
                           </div>
+                          
+                          {isEditing ? (
+                            <div className="flex gap-2 mt-1">
+                              <input
+                                type="text"
+                                value={currentValue}
+                                onChange={(e) => setAdminTextInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
+                                placeholder="Enter value manually..."
+                                className="flex-1 bg-black/40 border border-white/10 focus:border-[#D4AF37]/50 rounded-lg px-3 py-1.5 text-sm text-white transition-all outline-none"
+                              />
+                              <button
+                                onClick={() => handleAdminTextSubmit(req.id, profileModalClient.id)}
+                                disabled={uploadingFor === req.id || !currentValue.trim()}
+                                className="px-3 py-1.5 bg-[#D4AF37] hover:bg-[#FCEBBA] text-black text-xs font-semibold rounded-lg disabled:opacity-50 whitespace-nowrap"
+                              >
+                                {uploadingFor === req.id ? 'Saving...' : 'Save'}
+                              </button>
+                              {req.status === 'Fulfilled' && (
+                                <button onClick={() => setEditingTextId(null)} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg">Cancel</button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mt-1 text-white text-sm bg-black/40 px-3 py-2 rounded-lg border border-white/10 break-words">
+                              {req.textResponse}
+                            </div>
+                          )}
                         </div>
-                      ))
+                      )})
                     )}
                   </div>
                 </div>
