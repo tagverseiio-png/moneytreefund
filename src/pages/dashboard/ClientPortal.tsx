@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { Upload, AlertCircle, CheckCircle2, FileText, Check, User, Eye, MessageSquare, Shield, HelpCircle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, FileText, Check, User, Eye, MessageSquare, Shield, HelpCircle, X } from 'lucide-react';
 
 interface DocumentRequest {
   id: string;
