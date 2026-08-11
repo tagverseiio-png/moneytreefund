@@ -15,11 +15,11 @@ export const getDocuments = async (req: Request, res: Response) => {
     }
     
     // Admins see all documents, clients only see their own
-    if (req.user?.role !== 'Admin') {
-      // For now, if they are a client, they can only see documents associated with their user ID?
-      // Or maybe clients aren't set up to have document access yet.
-      // If we assume the frontend sends their ID as clientId, we can enforce it:
-      // query = query.where('clientId', '==', req.user?.uid);
+    if (req.userRole !== 'Admin') {
+      if (!req.user?.uid) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+      }
+      query = query.where('clientId', '==', req.user.uid);
     }
     
     const snapshot = await query.orderBy('uploadedAt', 'desc').get();
@@ -39,6 +39,10 @@ export const getDocuments = async (req: Request, res: Response) => {
 // Upload a new document
 export const uploadDocument = async (req: Request, res: Response) => {
   try {
+    if (req.userRole !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Only Admins can upload documents' });
+    }
+
     const { clientId, clientName, requestId } = req.body;
     const file = req.file;
 
@@ -113,8 +117,8 @@ export const getDownloadUrl = async (req: Request, res: Response) => {
     const docData = docRef.data();
     
     // Security check: Only Admin, or the associated client
-    if (req.user?.role !== 'Admin' && req.user?.uid !== docData?.clientId) {
-      // return res.status(403).json({ success: false, message: 'Forbidden' });
+    if (req.userRole !== 'Admin' && req.user?.uid !== docData?.clientId) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
     const command = new GetObjectCommand({

@@ -22,7 +22,6 @@ export const ClientPortal = () => {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
-  const [dragOverReqId, setDragOverReqId] = useState<string | null>(null);
   const [textInputs, setTextInputs] = useState<Record<string, string>>({});
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [supportMsg, setSupportMsg] = useState('');
@@ -53,48 +52,6 @@ export const ClientPortal = () => {
   useEffect(() => {
     fetchProfileAndRequests();
   }, [user]);
-
-  const uploadFileForRequest = async (file: File, requestId: string) => {
-    if (!user?.uid) return;
-    try {
-      setUploadingFor(requestId);
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('clientId', user.uid);
-      formData.append('requestId', requestId);
-      
-      await api.post('/documents', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      toast.success('Document securely uploaded. Our team will review it shortly.');
-      fetchProfileAndRequests();
-    } catch (error) {
-      console.error('Upload failed:', error);
-      toast.error('Failed to upload document. Please try again.');
-    } finally {
-      setUploadingFor(null);
-      setDragOverReqId(null);
-    }
-  };
-
-  const handleUploadFulfillment = async (e: React.ChangeEvent<HTMLInputElement>, requestId: string) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await uploadFileForRequest(file, requestId);
-    }
-  };
-
-  const handleDrop = async (e: React.DragEvent, requestId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragOverReqId(null);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      await uploadFileForRequest(file, requestId);
-    }
-  };
 
   const handleTextSubmit = async (requestId: string) => {
     const textResponse = textInputs[requestId];
@@ -300,18 +257,12 @@ export const ClientPortal = () => {
             <div className="space-y-4 flex-1">
               {fileRequests.map((req) => {
                 const isPending = req.status === 'Pending';
-                const isDragActive = dragOverReqId === req.id;
                 return (
                   <div
                     key={req.id}
-                    onDragOver={(e) => { e.preventDefault(); if (isPending) setDragOverReqId(req.id); }}
-                    onDragLeave={() => setDragOverReqId(null)}
-                    onDrop={(e) => handleDrop(e, req.id)}
                     className={`p-5 rounded-2xl border transition-all ${
-                      isDragActive
-                        ? 'bg-[#D4AF37]/10 border-[#D4AF37] scale-[1.01]'
-                        : isPending
-                        ? 'bg-black/30 border-white/10 hover:border-white/20'
+                      isPending
+                        ? 'bg-black/30 border-white/10'
                         : 'bg-green-500/5 border-green-500/20'
                     }`}
                   >
@@ -326,16 +277,14 @@ export const ClientPortal = () => {
                           )}
                         </div>
                         <p className="text-xs text-gray-400 leading-relaxed">
-                          {req.description || 'Drag & drop file here or browse.'}
+                          {req.description || (isPending ? 'Pending Admin Upload.' : 'Document has been uploaded.')}
                         </p>
                       </div>
                       
                       {isPending ? (
-                        <label className={`shrink-0 cursor-pointer px-4 py-2.5 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#D4AF37] transition-all rounded-xl font-medium text-xs flex items-center justify-center gap-2 ${uploadingFor === req.id ? 'opacity-50 pointer-events-none' : ''}`}>
-                          <Upload size={14} />
-                          {uploadingFor === req.id ? 'Uploading...' : 'Browse File'}
-                          <input type="file" className="hidden" onChange={(e) => handleUploadFulfillment(e, req.id)} />
-                        </label>
+                        <div className="shrink-0 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 rounded-xl text-xs font-medium flex items-center gap-2">
+                          <AlertCircle size={14} /> Waiting for Admin
+                        </div>
                       ) : (
                         <div className="shrink-0 flex items-center gap-2">
                           {req.documentId && (
