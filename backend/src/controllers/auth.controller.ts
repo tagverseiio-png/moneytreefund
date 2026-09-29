@@ -72,7 +72,7 @@ export const signup = async (req: Request, res: Response) => {
       name,
       role: 'Client',
       status: 'Pending',
-      layoutId,
+      layoutId: layoutId || null,
       createdAt: new Date().toISOString()
     });
 
@@ -82,7 +82,7 @@ export const signup = async (req: Request, res: Response) => {
       email,
       id: uid,
       status: 'Pending',
-      layoutId,
+      layoutId: layoutId || null,
       createdAt: new Date().toISOString(),
       createdBy: 'self-signup'
     };
