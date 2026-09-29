@@ -42,3 +42,4 @@ if (!getApps().length) {
 
 export const auth = getAuth();
 export const db = getFirestore();
+db.settings({ ignoreUndefinedProperties: true });
