@@ -39,8 +39,8 @@ export const getDocuments = async (req: Request, res: Response) => {
 // Upload a new document
 export const uploadDocument = async (req: Request, res: Response) => {
   try {
-    if (req.userRole !== 'Admin') {
-      return res.status(403).json({ success: false, message: 'Forbidden: Only Admins can upload documents' });
+    if (req.userRole !== 'Admin' && req.user?.uid !== req.body.clientId) {
+      return res.status(403).json({ success: false, message: 'Forbidden: You can only upload documents for your own account' });
     }
 
     const { clientId, clientName, requestId } = req.body;
@@ -78,6 +78,8 @@ export const uploadDocument = async (req: Request, res: Response) => {
       clientName: clientName || 'Unknown Client',
       size: file.size,
       mimetype: file.mimetype,
+      category: req.body.category || 'Others',
+      description: req.body.description || '',
       uploadedAt: new Date().toISOString(),
       uploadedBy: req.user?.uid || 'system'
     };

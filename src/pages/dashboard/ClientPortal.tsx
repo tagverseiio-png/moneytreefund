@@ -26,6 +26,12 @@ export const ClientPortal = () => {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [supportMsg, setSupportMsg] = useState('');
   const [sendingSupport, setSendingSupport] = useState(false);
+  
+  // New Client Document Upload State
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState<string>('Others');
+  const [uploadDescription, setUploadDescription] = useState<string>('');
+  const [isUploadingClientDoc, setIsUploadingClientDoc] = useState(false);
 
   const fetchProfileAndRequests = async () => {
     try {
@@ -96,6 +102,36 @@ export const ClientPortal = () => {
       toast.success('Your message has been sent to your assigned fiduciary manager.');
     }, 800);
   };
+
+  const handleClientUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile || !user?.uid) return;
+
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+    formData.append('clientId', user.uid);
+    formData.append('clientName', user.displayName || user.email || 'Unknown Client');
+    formData.append('category', uploadCategory);
+    formData.append('description', uploadDescription);
+
+    try {
+      setIsUploadingClientDoc(true);
+      await api.post('/documents', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success('Document uploaded successfully.');
+      setUploadFile(null);
+      setUploadCategory('Others');
+      setUploadDescription('');
+      // Optionally fetch client's own documents here if displaying them
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload document.');
+    } finally {
+      setIsUploadingClientDoc(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -269,7 +305,7 @@ export const ClientPortal = () => {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-gray-200 text-sm">{req.title}</h4>
+                          <h4 className="font-medium text-gray-200 text-sm">{isPending ? 'Document Request' : req.title}</h4>
                           {!isPending && (
                             <span className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded text-[10px] font-semibold uppercase">
                               Uploaded
@@ -277,7 +313,7 @@ export const ClientPortal = () => {
                           )}
                         </div>
                         <p className="text-xs text-gray-400 leading-relaxed">
-                          {req.description || (isPending ? 'Pending Admin Upload.' : 'Document has been uploaded.')}
+                          {isPending ? 'Pending Admin Upload.' : (req.description || 'Document has been uploaded.')}
                         </p>
                       </div>
                       
@@ -308,6 +344,64 @@ export const ClientPortal = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* New Client Document Upload Section */}
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/5 relative overflow-hidden">
+        <h3 className="text-xl font-serif text-white tracking-wide flex items-center gap-2 mb-6">
+          <FileText className="text-[#D4AF37]" size={22} /> Upload Your Documents
+        </h3>
+        
+        <form onSubmit={handleClientUpload} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Document Category</label>
+              <select
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 focus:border-[#D4AF37]/50 rounded-xl px-4 py-2.5 text-sm text-white transition-all outline-none"
+              >
+                <option value="KYC requirement documents">KYC requirement documents</option>
+                <option value="Supporting Document for Source of Funds">Supporting Document for Source of Funds</option>
+                <option value="Supporting Documents for Capital Gain Tax">Supporting Documents for Capital Gain Tax</option>
+                <option value="Supporting Document for AML Declaration">Supporting Document for AML Declaration</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">File Description (Optional)</label>
+              <input
+                type="text"
+                value={uploadDescription}
+                onChange={(e) => setUploadDescription(e.target.value)}
+                placeholder="Brief description of the file..."
+                className="w-full bg-black/40 border border-white/10 focus:border-[#D4AF37]/50 rounded-xl px-4 py-2.5 text-sm text-white transition-all outline-none"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Select File (PDF or Image)</label>
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+              required
+              className="w-full text-sm text-gray-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white/5 file:text-white hover:file:bg-white/10 transition-all cursor-pointer border border-white/10 rounded-xl bg-black/40"
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={!uploadFile || isUploadingClientDoc}
+              className="px-6 py-2.5 bg-[#D4AF37] hover:bg-[#FCEBBA] text-black rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors"
+            >
+              {isUploadingClientDoc ? 'Uploading...' : 'Upload Document'}
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Support / Contact Fiduciary Modal */}
