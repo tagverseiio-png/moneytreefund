@@ -18,7 +18,7 @@ export const SignupPage = () => {
     setError('');
 
     try {
-      await api.post('/auth/signup', { name, email, password });
+      await api.post('/auth/signup', { name, email, password, layoutId: null });
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
